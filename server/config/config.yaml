@@ -24,7 +24,7 @@ jwt:
 
 log:
   level: info
-  filename: logs/app.log
+  filename: logs/taskhub.log
   maxSize: 10
   maxBackups: 3
   maxAge: 7
