@@ -1,0 +1,4 @@
+{"level":"info","time":"2025-06-04T23:00:15.023+0800","caller":"logger/logger.go:89","msg":"TaskHub server started successfully"}
+{"level":"info","time":"2025-06-04T23:00:15.034+0800","caller":"logger/logger.go:89","msg":"Server is running on port 8080"}
+{"level":"info","time":"2025-06-04T23:07:09.888+0800","caller":"logger/logger.go:89","msg":"TaskHub 服务启动成功"}
+{"level":"info","time":"2025-06-04T23:07:09.900+0800","caller":"logger/logger.go:89","msg":"服务正在运行在端口 80"}
