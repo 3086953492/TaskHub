@@ -3,9 +3,7 @@ package database
 import (
 	"fmt"
 	"time"
-
 	"TaskHub/config"
-
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -28,14 +26,14 @@ func InitDB() error {
 	)
 
 	var err error
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+	config.DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to connect database: %w", err)
 	}
 
-	sqlDB, err := DB.DB()
+	sqlDB, err := config.DB.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get sql.DB: %w", err)
 	}
@@ -46,8 +44,4 @@ func InitDB() error {
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
 	return nil
-}
-
-func GetDB() *gorm.DB {
-	return DB
 }

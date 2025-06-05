@@ -13,10 +13,11 @@ type Config struct {
 	Log      LogConfig      `mapstructure:"log"`
 }
 
-var Cfg *Config
-
-var DB *gorm.DB
-
+var (
+	Cfg *Config
+	DB *gorm.DB
+)
+ 
 func InitConfig() error {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
