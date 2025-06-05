@@ -1,17 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"strconv"
-
 	"TaskHub/config"
 	"TaskHub/pkg/database"
 	"TaskHub/pkg/logger"
-
-	"github.com/gin-gonic/gin"
+	"TaskHub/routers"
+	"fmt"
 	"go.uber.org/zap"
+	"log"
+	"os"
+	"strconv"
 )
 
 func main() {
@@ -41,12 +39,7 @@ func main() {
 	}
 
 	// 初始化 Gin 服务器
-	r := gin.Default()
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "TaskHub 服务运行中",
-		})
-	})
+	r := router.InitRouter()
 
 	logger.Info("TaskHub 服务启动成功")
 	logger.Info(fmt.Sprintf("服务正在运行在端口 %d", port))
