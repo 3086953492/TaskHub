@@ -20,3 +20,16 @@ func Login(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
+
+func Register(c *gin.Context) {
+	var req userModel.RegisterRequest
+	if err := c.ShouldBindJSON(&req); err!= nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误: " + err.Error()})
+		return
+	}
+	user, err := userService.Register(&req)
+	if err!= nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	c.JSON(http.StatusOK, gin.H{"user": user})
+}

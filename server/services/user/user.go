@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateUser(req *user.CreateUserRequest) (*user.User, error) {
+func Register(req *user.RegisterRequest) (*user.User, error) {
 	// 检查用户名是否已存在
 	var existUser user.User
 	if err := config.DB.Where("username = ?", req.Username).First(&existUser).Error; err == nil {
