@@ -2,9 +2,11 @@ package user
 
 import (
 	userModel "TaskHub/models/user"
+	"TaskHub/pkg/auth"
 	userService "TaskHub/services/user"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Login(c *gin.Context) {
@@ -18,7 +20,15 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"user": user})
+
+	// 生成JWT令牌
+	token, err := auth.GenerateToken(user.ID, user.Username)
+	if err!= nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "生成令牌失败: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
 func Register(c *gin.Context) {
