@@ -22,7 +22,7 @@ func Login(c *gin.Context) {
 	}
 
 	// 生成JWT令牌
-	token, err := auth.GenerateToken(user.ID, user.Username)
+	token, err := auth.GenerateToken(user.ID, user.Username,user.Role)
 	if err!= nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "生成令牌失败: " + err.Error()})
 		return

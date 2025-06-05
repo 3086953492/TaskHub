@@ -12,13 +12,15 @@ import (
 type Claims struct {
 	UserID   uint   `json:"user_id"`
 	Username string `json:"username"`
+	Role     string `json:"role"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID uint, username string) (string, error) {
+func GenerateToken(userID uint, username string, role string) (string, error) {
 	claims := Claims{
 		UserID:   userID,
 		Username: username,
+		Role:     role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(config.Cfg.JWT.Expire)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -54,7 +56,7 @@ func RefreshToken(tokenString string) (string, error) {
 
 	// 检查token是否即将过期（还有30分钟过期）
 	if time.Until(claims.ExpiresAt.Time) < 30*time.Minute {
-		return GenerateToken(claims.UserID, claims.Username)
+		return GenerateToken(claims.UserID, claims.Username,claims.Role)
 	}
 
 	return "", errors.New("token still valid, no need to refresh")
