@@ -25,23 +25,3 @@ CREATE TABLE
         UNIQUE KEY `idx_email` (`email`),
         KEY `idx_deleted_at` (`deleted_at`)
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
-
--- 初始化一个管理员账号
-INSERT INTO
-    `users` (
-        `username`,
-        `email`,
-        `password`,
-        `nickname`,
-        `status`,
-        `role`
-    )
-VALUES
-    (
-        'admin',
-        'admin@example.com',
-        MD5('adminadmin'),
-        'Admin',
-        1,
-        'admin'
-    );
