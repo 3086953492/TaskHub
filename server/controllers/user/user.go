@@ -43,3 +43,18 @@ func Register(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
+
+func UpdateUser(c *gin.Context) {
+	// 解析请求参数
+	var req userModel.UpdateUserRequest
+	if err := c.ShouldBindJSON(&req); err!= nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误: " + err.Error()})
+		return
+	}
+	userID := c.GetUint("userID") // 从上下文中获取用户ID
+
+	if _,err := userService.UpdateUser(userID, &req); err!= nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	c.JSON(http.StatusOK, gin.H{"msg": "用户信息更新成功"})
+}

@@ -3,9 +3,7 @@ package auth
 import (
 	"errors"
 	"time"
-
 	"TaskHub/config"
-
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -56,7 +54,7 @@ func RefreshToken(tokenString string) (string, error) {
 
 	// 检查token是否即将过期（还有30分钟过期）
 	if time.Until(claims.ExpiresAt.Time) < 30*time.Minute {
-		return GenerateToken(claims.UserID, claims.Username,claims.Role)
+		return GenerateToken(claims.UserID, claims.Username, claims.Role)
 	}
 
 	return "", errors.New("token still valid, no need to refresh")

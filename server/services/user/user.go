@@ -74,13 +74,26 @@ func UpdateUser(id uint, req *user.UpdateUserRequest) (*user.User, error) {
 	}
 
 	updates := make(map[string]interface{})
+	if req.Username!= "" {
+		updates["username"] = req.Username
+	}
+	if req.Email!= "" {
+		updates["email"] = req.Email
+	}
+	if req.Password!= "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err!= nil {
+			return nil, err
+		}
+		updates["password"] = string(hashedPassword)
+	}
 	if req.Nickname != "" {
 		updates["nickname"] = req.Nickname
 	}
 	if req.Avatar != "" {
 		updates["avatar"] = req.Avatar
 	}
-
+	
 	if len(updates) > 0 {
 		if err := config.DB.Model(&user).Updates(updates).Error; err != nil {
 			return nil, err
