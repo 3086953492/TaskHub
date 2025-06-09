@@ -7,7 +7,8 @@ import (
 
 type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
-	Database DatabaseConfig `mapstructure:"database"`
+	UserDatabase DatabaseConfig `mapstructure:"userDatabase"`
+	TaskDatabase DatabaseConfig `mapstructure:"taskDatabase"`
 	Redis    RedisConfig    `mapstructure:"redis"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	Log      LogConfig      `mapstructure:"log"`
@@ -16,7 +17,8 @@ type Config struct {
 
 var (
 	Cfg *Config
-	DB *gorm.DB
+	UserDB *gorm.DB
+	TaskDB *gorm.DB
 )
  
 func InitConfig() error {

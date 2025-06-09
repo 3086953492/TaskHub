@@ -1,10 +1,10 @@
 -- 创建数据库（如果不存在）
-CREATE DATABASE IF NOT EXISTS `taskhub` DEFAULT CHARACTER
+CREATE DATABASE IF NOT EXISTS `taskhub_user` DEFAULT CHARACTER
 SET
     utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
 -- 使用数据库
-USE `taskhub`;
+USE `taskhub_user`;
 
 -- 创建 users 表
 CREATE TABLE
