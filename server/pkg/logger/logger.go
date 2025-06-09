@@ -2,9 +2,7 @@ package logger
 
 import (
 	"os"
-
-	"TaskHub/config"
-
+	"TaskHub/configs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -13,7 +11,7 @@ import (
 var Logger *zap.Logger
 
 func InitLogger() error {
-	cfg := config.Cfg.Log
+	cfg := configs.Cfg.Log
 
 	// 确保日志目录存在
 	if err := os.MkdirAll("logs", os.ModePerm); err != nil {

@@ -1,7 +1,7 @@
 package user
 
 import (
-	"TaskHub/config"
+	"TaskHub/configs"
 	"TaskHub/models/user"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
@@ -11,12 +11,12 @@ import (
 func Register(req *user.RegisterRequest) (*user.User, error) {
 	// 检查用户名是否已存在
 	var existUser user.User
-	if err := config.DB.Where("username = ?", req.Username).First(&existUser).Error; err == nil {
+	if err := configs.DB.Where("username = ?", req.Username).First(&existUser).Error; err == nil {
 		return nil, errors.New("用户名已存在")
 	}
 
 	// 检查邮箱是否已存在
-	if err := config.DB.Where("email = ?", req.Email).First(&existUser).Error; err == nil {
+	if err := configs.DB.Where("email = ?", req.Email).First(&existUser).Error; err == nil {
 		return nil, errors.New("邮箱已存在")
 	}
 
@@ -35,7 +35,7 @@ func Register(req *user.RegisterRequest) (*user.User, error) {
 		Role:     "user",
 	}
 
-	if err := config.DB.Create(user).Error; err != nil {
+	if err := configs.DB.Create(user).Error; err != nil {
 		return nil, err
 	}
 
@@ -44,7 +44,7 @@ func Register(req *user.RegisterRequest) (*user.User, error) {
 
 func Login(req *user.LoginRequest) (*user.User, error) {
 	var user user.User
-	if err := config.DB.Where("username = ? AND status = 1", req.Username).First(&user).Error; err != nil {
+	if err := configs.DB.Where("username = ? AND status = 1", req.Username).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("用户名或密码错误")
 		}
@@ -61,7 +61,7 @@ func Login(req *user.LoginRequest) (*user.User, error) {
 
 func GetUserByID(id uint) (*user.User, error) {
 	var user user.User
-	if err := config.DB.Where("id = ? AND status = 1", id).First(&user).Error; err != nil {
+	if err := configs.DB.Where("id = ? AND status = 1", id).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -69,7 +69,7 @@ func GetUserByID(id uint) (*user.User, error) {
 
 func UpdateUser(id uint, req *user.UpdateUserRequest) (*user.User, error) {
 	var user user.User
-	if err := config.DB.Where("id = ? AND status = 1", id).First(&user).Error; err != nil {
+	if err := configs.DB.Where("id = ? AND status = 1", id).First(&user).Error; err != nil {
 		return nil, err
 	}
 
@@ -95,7 +95,7 @@ func UpdateUser(id uint, req *user.UpdateUserRequest) (*user.User, error) {
 	}
 	
 	if len(updates) > 0 {
-		if err := config.DB.Model(&user).Updates(updates).Error; err != nil {
+		if err := configs.DB.Model(&user).Updates(updates).Error; err != nil {
 			return nil, err
 		}
 	}
@@ -104,7 +104,7 @@ func UpdateUser(id uint, req *user.UpdateUserRequest) (*user.User, error) {
 }
 
 func DeleteUser(id uint) error {
-	return config.DB.Delete(&user.User{}, id).Error
+	return configs.DB.Delete(&user.User{}, id).Error
 }
 
 func GetUsers(page, pageSize int) ([]*user.User, int64, error) {
@@ -113,11 +113,11 @@ func GetUsers(page, pageSize int) ([]*user.User, int64, error) {
 
 	offset := (page - 1) * pageSize
 
-	if err := config.DB.Model(&user.User{}).Where("status = 1").Count(&total).Error; err != nil {
+	if err := configs.DB.Model(&user.User{}).Where("status = 1").Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	if err := config.DB.Where("status = 1").Offset(offset).Limit(pageSize).Find(&users).Error; err != nil {
+	if err := configs.DB.Where("status = 1").Offset(offset).Limit(pageSize).Find(&users).Error; err != nil {
 		return nil, 0, err
 	}
 

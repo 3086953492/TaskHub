@@ -1,20 +1,21 @@
 package main
 
 import (
-	"TaskHub/config"
+	"TaskHub/configs"
+	"TaskHub/pkg/auth"
 	"TaskHub/pkg/database"
 	"TaskHub/pkg/logger"
 	"TaskHub/routers"
 	"fmt"
-	"go.uber.org/zap"
 	"log"
 	"os"
 	"strconv"
+	"go.uber.org/zap"
 )
 
 func main() {
 	// 初始化配置
-	if err := config.InitConfig(); err != nil {
+	if err := configs.InitConfig(); err != nil {
 		log.Fatalf("初始化配置失败: %v", err)
 	}
 
@@ -29,8 +30,11 @@ func main() {
 		return
 	}
 
+	// 初始化会话存储
+	auth.InitSessionStore()
+
 	// 获取端口号，优先使用命令行参数
-	port := config.Cfg.Server.Port
+	port := configs.Cfg.Server.Port
 	if len(os.Args) > 1 {
 		argPort, err := strconv.Atoi(os.Args[1])
 		if err == nil {
@@ -39,7 +43,7 @@ func main() {
 	}
 
 	// 初始化 Gin 服务器
-	r := router.InitRouter()
+	r := routers.InitRouter()
 
 	logger.Info("TaskHub 服务启动成功")
 	logger.Info(fmt.Sprintf("服务正在运行在端口 %d", port))

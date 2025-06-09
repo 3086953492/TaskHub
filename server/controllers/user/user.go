@@ -28,7 +28,9 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	auth.SetSession(c, "token", token)
+
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 func Register(c *gin.Context) {
@@ -57,4 +59,9 @@ func UpdateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 	c.JSON(http.StatusOK, gin.H{"msg": "用户信息更新成功"})
+}
+
+func Logout(c *gin.Context) {
+	auth.DelSession(c, "token")
+	c.JSON(http.StatusOK, gin.H{"msg": "退出成功"})
 }

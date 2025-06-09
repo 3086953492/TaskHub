@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 	"time"
-	"TaskHub/config"
+	"TaskHub/configs"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -12,7 +12,7 @@ import (
 var DB *gorm.DB
 
 func InitDB() error {
-	cfg := config.Cfg.Database
+	cfg := configs.Cfg.Database
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=%t&loc=%s",
 		cfg.User,
@@ -26,14 +26,14 @@ func InitDB() error {
 	)
 
 	var err error
-	config.DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+	configs.DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to connect database: %w", err)
 	}
 
-	sqlDB, err := config.DB.DB()
+	sqlDB, err := configs.DB.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get sql.DB: %w", err)
 	}
