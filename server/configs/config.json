@@ -1,0 +1,52 @@
+{
+  "server": {
+    "port": 8080,
+    "mode": "debug"
+  },
+  "userDatabase": {
+    "host": "localhost",
+    "port": 3306,
+    "user": "root",
+    "password": "123456",
+    "dbname": "taskhub_user",
+    "charset": "utf8mb4",
+    "parseTime": true,
+    "loc": "Local"
+  },
+  "taskDatabase": {
+    "host": "localhost",
+    "port": 3306,
+    "user": "root",
+    "password": "123456",
+    "dbname": "taskhub_task",
+    "charset": "utf8mb4",
+    "parseTime": true,
+    "loc": "Local"
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "password": "",
+    "db": 0
+  },
+  "jwt": {
+    "secret": "taskhubkey",
+    "expire": "24h"
+  },
+  "log": {
+    "level": "info",
+    "filename": "logs/taskhub.log",
+    "maxSize": 10,
+    "maxBackups": 3,
+    "maxAge": 7,
+    "compress": true
+  },
+  "session": {
+    "http_only": true,
+    "secure": false,
+    "same_site": 2,
+    "max_age": 3600,
+    "path": "/",
+    "domain": "localhost"
+  }
+} 
