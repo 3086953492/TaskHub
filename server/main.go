@@ -5,6 +5,7 @@ import (
 	"TaskHub/pkg/auth"
 	"TaskHub/pkg/database"
 	"TaskHub/pkg/logger"
+	"TaskHub/pkg/validator"
 	"TaskHub/routers"
 	"fmt"
 	"log"
@@ -32,6 +33,12 @@ func main() {
 
 	// 初始化会话存储
 	auth.InitSessionStore()
+
+	// 初始化验证器
+	if err := validator.InitValidator(); err != nil {
+		logger.Error("初始化验证器失败", zap.Error(err))
+		return
+	}
 
 	// 获取端口号，优先使用命令行参数
 	port := configs.Cfg.Server.Port

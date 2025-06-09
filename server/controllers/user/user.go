@@ -1,6 +1,7 @@
 package user
 
 import (
+	"TaskHub/configs"
 	userModel "TaskHub/models/user"
 	"TaskHub/pkg/auth"
 	"TaskHub/pkg/logger"
@@ -12,11 +13,14 @@ import (
 )
 
 func Login(c *gin.Context) {
+
 	var req userModel.LoginRequest
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误: " + err.Error()})
 		return
 	}
+
 	user, err := userService.Login(&req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -24,8 +28,8 @@ func Login(c *gin.Context) {
 	}
 
 	// 生成JWT令牌
-	token, err := auth.GenerateToken(user.ID, user.Username,user.Role)
-	if err!= nil {
+	token, err := auth.GenerateToken(user.ID, user.Username, user.Role)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "生成令牌失败: " + err.Error()})
 		return
 	}
@@ -40,12 +44,18 @@ func Login(c *gin.Context) {
 func Register(c *gin.Context) {
 
 	var req userModel.RegisterRequest
-	if err := c.ShouldBindJSON(&req); err!= nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误: " + err.Error()})
 		return
 	}
+
+	if err := configs.Validate.Struct(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "参数不符要求: " + err.Error()})
+		return
+	}
+
 	user, err := userService.Register(&req)
-	if err!= nil {
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
@@ -57,13 +67,19 @@ func Register(c *gin.Context) {
 func UpdateUser(c *gin.Context) {
 	// 解析请求参数
 	var req userModel.UpdateUserRequest
-	if err := c.ShouldBindJSON(&req); err!= nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误: " + err.Error()})
 		return
 	}
+
+	if err := configs.Validate.Struct(req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "参数不符要求: " + err.Error()})
+		return
+	}
+
 	userID := c.GetUint("userID") // 从上下文中获取用户ID
 
-	if _,err := userService.UpdateUser(userID, &req); err!= nil {
+	if _, err := userService.UpdateUser(userID, &req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 

@@ -2,6 +2,7 @@ package configs
 
 import (
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
@@ -20,6 +21,7 @@ var (
 	Cfg    *Config
 	UserDB *gorm.DB
 	TaskDB *gorm.DB
+	Validate *validator.Validate
 )
 
 func InitConfig() error {

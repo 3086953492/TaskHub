@@ -4,21 +4,13 @@ import (
 	"TaskHub/configs"
 	"TaskHub/models/user"
 	"errors"
+
+	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 func Register(req *user.RegisterRequest) (*user.User, error) {
-	// 检查用户名是否已存在
-	var existUser user.User
-	if err := configs.UserDB.Where("username = ?", req.Username).First(&existUser).Error; err == nil {
-		return nil, errors.New("用户名已存在")
-	}
-
-	// 检查邮箱是否已存在
-	if err := configs.UserDB.Where("email = ?", req.Email).First(&existUser).Error; err == nil {
-		return nil, errors.New("邮箱已存在")
-	}
 
 	// 加密密码
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -74,15 +66,15 @@ func UpdateUser(id uint, req *user.UpdateUserRequest) (*user.User, error) {
 	}
 
 	updates := make(map[string]interface{})
-	if req.Username!= "" {
+	if req.Username != "" {
 		updates["username"] = req.Username
 	}
-	if req.Email!= "" {
+	if req.Email != "" {
 		updates["email"] = req.Email
 	}
-	if req.Password!= "" {
+	if req.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-		if err!= nil {
+		if err != nil {
 			return nil, err
 		}
 		updates["password"] = string(hashedPassword)
@@ -93,7 +85,7 @@ func UpdateUser(id uint, req *user.UpdateUserRequest) (*user.User, error) {
 	if req.Avatar != "" {
 		updates["avatar"] = req.Avatar
 	}
-	
+
 	if len(updates) > 0 {
 		if err := configs.UserDB.Model(&user).Updates(updates).Error; err != nil {
 			return nil, err
@@ -122,4 +114,37 @@ func GetUsers(page, pageSize int) ([]*user.User, int64, error) {
 	}
 
 	return users, total, nil
+}
+
+func VerifyUsernameUnique(fl validator.FieldLevel) bool {
+
+	value := fl.Field().Interface().(string)
+
+	// 如果是更新场景，需要获取用户id
+	var id int
+	if fl.Parent().FieldByName("Id").IsValid() {
+		id = fl.Parent().FieldByName("Id").Interface().(int)
+	}
+
+	// 如果获取到数据，则说明用户名已存在，返回false，否则返回true
+	if err := configs.UserDB.Where("id != ? AND username = ?", id, value).First(&user.User{}).Error; err != nil {
+		return true
+	}
+
+	return false
+}
+
+func VerifyEmailUnique(fl validator.FieldLevel) bool {
+	value := fl.Field().Interface().(string)
+
+	var id int
+	if fl.Parent().FieldByName("Id").IsValid() {
+		id = fl.Parent().FieldByName("Id").Interface().(int)
+	}
+
+	if err := configs.UserDB.Where("id != ? AND email = ?", id, value).First(&user.User{}).Error; err != nil {
+		return true
+	}
+
+	return false
 }
