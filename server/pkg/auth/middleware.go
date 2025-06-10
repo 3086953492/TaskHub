@@ -4,14 +4,15 @@ import "github.com/gin-gonic/gin"
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := GetSession(c, "token").(string)
-		if tokenString == "" {
-			c.AbortWithStatusJSON(401, gin.H{"error": "Authorization header is required"})
+		token := GetSession(c, "token")
+		if token == nil {
+			c.AbortWithStatusJSON(401, gin.H{"error": "请先登录"})
 			return
 		}
+		tokenString := token.(string)
 		claims, err := ParseToken(tokenString)
 		if err != nil {
-			c.AbortWithStatusJSON(401, gin.H{"error": "Invalid or expired token"})
+			c.AbortWithStatusJSON(401, gin.H{"error": "无效的token"})
 			return
 		}
 		c.Set("userID", claims.UserID)
