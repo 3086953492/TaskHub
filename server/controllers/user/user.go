@@ -105,6 +105,6 @@ func UpdateUser(c *gin.Context) {
 
 func Logout(c *gin.Context) {
 	auth.DelSession(c, "token")
-	logger.Info("用户退出成功")
+	logger.Info("用户退出成功", zap.String("username", c.GetString("username")))
 	c.JSON(http.StatusOK, gin.H{"msg": "退出成功"})
 }
