@@ -5,6 +5,7 @@ import (
 	userModel "TaskHub/models/user"
 	"TaskHub/pkg/auth"
 	"TaskHub/pkg/logger"
+	"TaskHub/services/user"
 	userService "TaskHub/services/user"
 	"net/http"
 
@@ -72,13 +73,27 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
+	userID := c.GetUint("userID") // 从上下文中获取用户ID
+
+	user,err := user.GetUserByID(userID) // 从数据库中获取用户信息
+	if err!= nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取用户信息失败: " + err.Error()})
+		return
+	}
+
+	// 校验用户名与邮箱是否与数据库中一致，若一致则将请求体中的数据置空，防止唯一校验不通过
+	if req.Username == user.Username {
+		req.Username = ""
+	}
+	if req.Email == user.Email {
+		req.Email = ""
+	}
+
 	if err := configs.Validate.Struct(req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "参数不符要求: " + err.Error()})
 		return
 	}
-
-	userID := c.GetUint("userID") // 从上下文中获取用户ID
-
+	
 	if _, err := userService.UpdateUser(userID, &req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}

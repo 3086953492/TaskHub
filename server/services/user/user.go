@@ -4,8 +4,6 @@ import (
 	"TaskHub/configs"
 	"TaskHub/models/user"
 	"errors"
-
-	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -116,35 +114,18 @@ func GetUsers(page, pageSize int) ([]*user.User, int64, error) {
 	return users, total, nil
 }
 
-func VerifyUsernameUnique(fl validator.FieldLevel) bool {
-
-	value := fl.Field().Interface().(string)
-
-	// 如果是更新场景，需要获取用户id
-	var id int
-	if fl.Parent().FieldByName("Id").IsValid() {
-		id = fl.Parent().FieldByName("Id").Interface().(int)
+func GetUserByUsername(username string) (*user.User, error) {
+	var user user.User
+	if err := configs.UserDB.Where("username =? AND status = 1", username).First(&user).Error; err!= nil {
+		return nil, err
 	}
-
-	// 如果获取到数据，则说明用户名已存在，返回false，否则返回true
-	if err := configs.UserDB.Where("id != ? AND username = ?", id, value).First(&user.User{}).Error; err != nil {
-		return true
-	}
-
-	return false
+	return &user, nil
 }
 
-func VerifyEmailUnique(fl validator.FieldLevel) bool {
-	value := fl.Field().Interface().(string)
-
-	var id int
-	if fl.Parent().FieldByName("Id").IsValid() {
-		id = fl.Parent().FieldByName("Id").Interface().(int)
+func GetUserByEmail(email string) (*user.User, error) {
+	var user user.User
+	if err := configs.UserDB.Where("email =? AND status = 1", email).First(&user).Error; err!= nil {
+		return nil, err
 	}
-
-	if err := configs.UserDB.Where("id != ? AND email = ?", id, value).First(&user.User{}).Error; err != nil {
-		return true
-	}
-
-	return false
+	return &user, nil
 }
