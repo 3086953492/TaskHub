@@ -20,7 +20,7 @@ redis:
 
 jwt:
   secret: "taskhubkey"
-  expire: 24h
+  expire: 1h
 
 log:
   level: info
@@ -29,11 +29,3 @@ log:
   maxBackups: 3
   maxAge: 7
   compress: true 
-
-session:
-  http_only: true
-  secure: false
-  same_site: 2  # 2: SameSiteNoneMode
-  max_age: 3600
-  path: /
-  domain: localhost 

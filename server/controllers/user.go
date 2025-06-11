@@ -33,11 +33,9 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	auth.SetSession(c, "token", token)
-
 	logger.Info("用户登录成功", zap.String("username", user.Username))
 
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
 func Register(c *gin.Context) {
@@ -99,10 +97,4 @@ func UpdateUser(c *gin.Context) {
 	logger.Info("用户信息更新成功", zap.Uint("userID", userID))
 
 	c.JSON(http.StatusOK, gin.H{"msg": "用户信息更新成功"})
-}
-
-func Logout(c *gin.Context) {
-	auth.DelSession(c, "token")
-	logger.Info("用户退出成功", zap.String("username", c.GetString("username")))
-	c.JSON(http.StatusOK, gin.H{"msg": "退出成功"})
 }

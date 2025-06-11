@@ -6,5 +6,4 @@ type Config struct {
 	Redis    RedisConfig    `mapstructure:"redis"`
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	Log      LogConfig      `mapstructure:"log"`
-	Session  SessionConfig  `mapstructure:"session"`
 }

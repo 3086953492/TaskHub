@@ -3,7 +3,6 @@ package main
 import (
 	"TaskHub/global"
 	"TaskHub/initialize"
-	"TaskHub/pkg/auth"
 	"TaskHub/routers"
 	"TaskHub/pkg/logger"
 	"fmt"
@@ -29,9 +28,6 @@ func main() {
 		logger.Error("初始化数据库失败", zap.Error(err))
 		return
 	}
-
-	// 初始化会话存储
-	auth.InitSessionStore()
 
 	// 初始化验证器
 	if err := initialize.InitValidator(); err != nil {

@@ -12,6 +12,5 @@ func InitUserRouter(router *gin.Engine) {
 		userRouter.POST("/login", controllers.Login)
 		userRouter.POST("/register", controllers.Register)
 		userRouter.POST("/update", auth.AuthMiddleware(), controllers.UpdateUser)
-		userRouter.POST("/logout", auth.AuthMiddleware(), controllers.Logout)
 	}
 }
