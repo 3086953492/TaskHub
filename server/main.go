@@ -3,7 +3,6 @@ package main
 import (
 	"TaskHub/global"
 	"TaskHub/initialize"
-	"TaskHub/routers"
 	"TaskHub/pkg/logger"
 	"fmt"
 	"log"
@@ -44,8 +43,8 @@ func main() {
 		}
 	}
 
-	// 初始化 Gin 服务器
-	r := routers.InitRouter()
+	// 初始化 Gin 路由
+	r := initialize.InitRouters()
 
 	logger.Info("TaskHub 服务启动成功")
 	logger.Info(fmt.Sprintf("服务正在运行在端口 %d", port))
