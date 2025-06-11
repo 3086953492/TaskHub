@@ -2,7 +2,7 @@ package routers
 
 import (
 	"TaskHub/controllers"
-	"TaskHub/pkg/auth"
+	"TaskHub/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,6 +11,6 @@ func LoadUserRouters(router *gin.Engine) {
 	{
 		userRouters.POST("/login", controllers.LoginHandler)
 		userRouters.POST("/register", controllers.RegisterHandler)
-		userRouters.PUT("/info", auth.AuthMiddleware(), controllers.UpdateHandler)
+		userRouters.PUT("/info", middleware.AuthMiddleware(), controllers.UpdateHandler)
 	}
 }

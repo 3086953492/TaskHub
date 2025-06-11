@@ -1,10 +1,10 @@
-package auth
+package services
 
 import (
 	"TaskHub/global"
 	"errors"
-	"time"
 	"github.com/golang-jwt/jwt/v5"
+	"time"
 )
 
 type Claims struct {

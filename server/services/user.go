@@ -3,7 +3,6 @@ package services
 import (
 	"TaskHub/global"
 	"TaskHub/models"
-	"TaskHub/pkg/auth"
 	"TaskHub/pkg/logger"
 	"TaskHub/repositories"
 
@@ -18,7 +17,7 @@ func LoginService(req *models.LoginRequest) (string, error) {
 	}
 
 	// 生成JWT令牌
-	token, err := auth.GenerateToken(user.ID, user.Username, user.Role)
+	token, err := GenerateToken(user.ID, user.Username, user.Role)
 	if err != nil {
 		return "", err
 	}
