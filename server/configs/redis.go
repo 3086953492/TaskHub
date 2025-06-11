@@ -1,6 +1,5 @@
 package configs
 
-
 type RedisConfig struct {
 	Host     string `mapstructure:"host"`
 	Port     int    `mapstructure:"port"`

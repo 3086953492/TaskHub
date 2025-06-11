@@ -1,14 +1,14 @@
-package user
+package services
 
 import (
-	"TaskHub/configs"
-	"TaskHub/models/user"
+	"TaskHub/global"
+	"TaskHub/models"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-func Register(req *user.RegisterRequest) (*user.User, error) {
+func Register(req *models.RegisterRequest) (*models.User, error) {
 
 	// 加密密码
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -16,7 +16,7 @@ func Register(req *user.RegisterRequest) (*user.User, error) {
 		return nil, err
 	}
 
-	user := &user.User{
+	user := &models.User{
 		Username: req.Username,
 		Email:    req.Email,
 		Password: string(hashedPassword),
@@ -25,16 +25,16 @@ func Register(req *user.RegisterRequest) (*user.User, error) {
 		Role:     "user",
 	}
 
-	if err := configs.UserDB.Create(user).Error; err != nil {
+	if err := global.DB.Create(user).Error; err != nil {
 		return nil, err
 	}
 
 	return user, nil
 }
 
-func Login(req *user.LoginRequest) (*user.User, error) {
-	var user user.User
-	if err := configs.UserDB.Where("username = ? AND status = 1", req.Username).First(&user).Error; err != nil {
+func Login(req *models.LoginRequest) (*models.User, error) {
+	var user models.User
+	if err := global.DB.Where("username = ? AND status = 1", req.Username).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("用户名或密码错误")
 		}
@@ -49,17 +49,17 @@ func Login(req *user.LoginRequest) (*user.User, error) {
 	return &user, nil
 }
 
-func GetUserByID(id uint) (*user.User, error) {
-	var user user.User
-	if err := configs.UserDB.Where("id = ? AND status = 1", id).First(&user).Error; err != nil {
+func GetUserByID(id uint) (*models.User, error) {
+	var user models.User
+	if err := global.DB.Where("id = ? AND status = 1", id).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
-func UpdateUser(id uint, req *user.UpdateUserRequest) (*user.User, error) {
-	var user user.User
-	if err := configs.UserDB.Where("id = ? AND status = 1", id).First(&user).Error; err != nil {
+func UpdateUser(id uint, req *models.UpdateUserRequest) (*models.User, error) {
+	var user models.User
+	if err := global.DB.Where("id = ? AND status = 1", id).First(&user).Error; err != nil {
 		return nil, err
 	}
 
@@ -85,7 +85,7 @@ func UpdateUser(id uint, req *user.UpdateUserRequest) (*user.User, error) {
 	}
 
 	if len(updates) > 0 {
-		if err := configs.UserDB.Model(&user).Updates(updates).Error; err != nil {
+		if err := global.DB.Model(&user).Updates(updates).Error; err != nil {
 			return nil, err
 		}
 	}
@@ -94,37 +94,37 @@ func UpdateUser(id uint, req *user.UpdateUserRequest) (*user.User, error) {
 }
 
 func DeleteUser(id uint) error {
-	return configs.UserDB.Delete(&user.User{}, id).Error
+	return global.DB.Delete(&models.User{}, id).Error
 }
 
-func GetUsers(page, pageSize int) ([]*user.User, int64, error) {
-	var users []*user.User
+func GetUsers(page, pageSize int) ([]*models.User, int64, error) {
+	var users []*models.User
 	var total int64
 
 	offset := (page - 1) * pageSize
 
-	if err := configs.UserDB.Model(&user.User{}).Where("status = 1").Count(&total).Error; err != nil {
+	if err := global.DB.Model(&models.User{}).Where("status = 1").Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	if err := configs.UserDB.Where("status = 1").Offset(offset).Limit(pageSize).Find(&users).Error; err != nil {
+	if err := global.DB.Where("status = 1").Offset(offset).Limit(pageSize).Find(&users).Error; err != nil {
 		return nil, 0, err
 	}
 
 	return users, total, nil
 }
 
-func GetUserByUsername(username string) (*user.User, error) {
-	var user user.User
-	if err := configs.UserDB.Where("username =? AND status = 1", username).First(&user).Error; err!= nil {
+func GetUserByUsername(username string) (*models.User, error) {
+	var user models.User
+	if err := global.DB.Where("username =? AND status = 1", username).First(&user).Error; err!= nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
-func GetUserByEmail(email string) (*user.User, error) {
-	var user user.User
-	if err := configs.UserDB.Where("email =? AND status = 1", email).First(&user).Error; err!= nil {
+func GetUserByEmail(email string) (*models.User, error) {
+	var user models.User
+	if err := global.DB.Where("email =? AND status = 1", email).First(&user).Error; err!= nil {
 		return nil, err
 	}
 	return &user, nil

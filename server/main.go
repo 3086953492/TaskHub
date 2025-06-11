@@ -1,12 +1,11 @@
 package main
 
 import (
-	"TaskHub/configs"
+	"TaskHub/global"
+	"TaskHub/initialize"
 	"TaskHub/pkg/auth"
-	"TaskHub/pkg/database"
-	"TaskHub/pkg/logger"
-	"TaskHub/pkg/validator"
 	"TaskHub/routers"
+	"TaskHub/pkg/logger"
 	"fmt"
 	"log"
 	"os"
@@ -16,17 +15,17 @@ import (
 
 func main() {
 	// 初始化配置
-	if err := configs.InitConfig(); err != nil {
+	if err := initialize.InitConfig(); err != nil {
 		log.Fatalf("初始化配置失败: %v", err)
 	}
 
 	// 初始化日志
-	if err := logger.InitLogger(); err != nil {
+	if err := initialize.InitLogger(); err != nil {
 		log.Fatalf("初始化日志失败: %v", err)
 	}
 
 	// 初始化数据库
-	if err := database.InitDB(); err != nil {
+	if err := initialize.InitDB(); err != nil {
 		logger.Error("初始化数据库失败", zap.Error(err))
 		return
 	}
@@ -35,13 +34,13 @@ func main() {
 	auth.InitSessionStore()
 
 	// 初始化验证器
-	if err := validator.InitValidator(); err != nil {
+	if err := initialize.InitValidator(); err != nil {
 		logger.Error("初始化验证器失败", zap.Error(err))
 		return
 	}
 
 	// 获取端口号，优先使用命令行参数
-	port := configs.Cfg.Server.Port
+	port := global.Cfg.Server.Port
 	if len(os.Args) > 1 {
 		argPort, err := strconv.Atoi(os.Args[1])
 		if err == nil {

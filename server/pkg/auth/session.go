@@ -1,8 +1,7 @@
 package auth
 
 import (
-	"TaskHub/configs"
-
+	"TaskHub/global"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/sessions"
 )
@@ -12,12 +11,12 @@ var store *sessions.CookieStore
 func InitSessionStore() {
 	store = sessions.NewCookieStore([]byte("recomend-32bytes-at-least"))
 	store.Options = &sessions.Options{
-		Path:     configs.Cfg.Session.Path,
-		MaxAge:   configs.Cfg.Session.MaxAge,
-		Secure:   configs.Cfg.Session.Secure,
-		HttpOnly: configs.Cfg.Session.HttpOnly,
-		Domain:   configs.Cfg.Session.Domain,
-		SameSite: configs.Cfg.Session.SameSite,
+		Path:     global.Cfg.Session.Path,
+		MaxAge:   global.Cfg.Session.MaxAge,
+		Secure:   global.Cfg.Session.Secure,
+		HttpOnly: global.Cfg.Session.HttpOnly,
+		Domain:   global.Cfg.Session.Domain,
+		SameSite: global.Cfg.Session.SameSite,
 	}
 }
 

@@ -1,9 +1,9 @@
 package auth
 
 import (
+	"TaskHub/global"
 	"errors"
 	"time"
-	"TaskHub/configs"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -20,19 +20,19 @@ func GenerateToken(userID uint, username string, role string) (string, error) {
 		Username: username,
 		Role:     role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(configs.Cfg.JWT.Expire)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(global.Cfg.JWT.Expire)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(configs.Cfg.JWT.Secret))
+	return token.SignedString([]byte(global.Cfg.JWT.Secret))
 }
 
 func ParseToken(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(configs.Cfg.JWT.Secret), nil
+		return []byte(global.Cfg.JWT.Secret), nil
 	})
 
 	if err != nil {
