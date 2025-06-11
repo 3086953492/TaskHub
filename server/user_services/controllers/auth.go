@@ -1,9 +1,10 @@
 package controllers
 
 import (
-	"TaskHub/services"
-	"github.com/gin-gonic/gin"
+	"TaskHub/user_service/services"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func RefreshHandler(c *gin.Context) {

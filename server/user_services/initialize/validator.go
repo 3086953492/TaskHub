@@ -1,8 +1,9 @@
 package initialize
 
 import (
-	"TaskHub/global"
-	validator_pkg"TaskHub/pkg/validator"
+	"TaskHub/user_service/global"
+	validator_pkg "TaskHub/user_service/pkg/validator"
+
 	"github.com/go-playground/validator/v10"
 )
 

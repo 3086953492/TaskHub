@@ -1,10 +1,10 @@
 package services
 
 import (
-	"TaskHub/global"
-	"TaskHub/models"
-	"TaskHub/pkg/logger"
-	"TaskHub/repositories"
+	"TaskHub/user_service/global"
+	"TaskHub/user_service/models"
+	"TaskHub/user_service/pkg/logger"
+	"TaskHub/user_service/repositories"
 
 	"go.uber.org/zap"
 )

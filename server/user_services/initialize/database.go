@@ -1,9 +1,10 @@
 package initialize
 
 import (
-	"TaskHub/global"
+	"TaskHub/user_service/global"
 	"fmt"
 	"time"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

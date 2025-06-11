@@ -1,7 +1,8 @@
 package logger
 
 import (
-	"TaskHub/global"
+	"TaskHub/user_service/global"
+
 	"go.uber.org/zap"
 )
 

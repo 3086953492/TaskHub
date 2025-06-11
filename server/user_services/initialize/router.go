@@ -1,7 +1,8 @@
 package initialize
 
 import (
-	"TaskHub/routers"
+	"TaskHub/user_service/routers"
+
 	"github.com/gin-gonic/gin"
 )
 

@@ -1,9 +1,10 @@
 package repositories
 
 import (
-	"TaskHub/global"
-	"TaskHub/models"
+	"TaskHub/user_service/global"
+	"TaskHub/user_service/models"
 	"errors"
+
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -116,7 +117,7 @@ func GetUsers(page, pageSize int) ([]*models.User, int64, error) {
 
 func GetUserByUsername(username string) (*models.User, error) {
 	var user models.User
-	if err := global.DB.Where("username =? AND status = 1", username).First(&user).Error; err!= nil {
+	if err := global.DB.Where("username =? AND status = 1", username).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -124,7 +125,7 @@ func GetUserByUsername(username string) (*models.User, error) {
 
 func GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
-	if err := global.DB.Where("email =? AND status = 1", email).First(&user).Error; err!= nil {
+	if err := global.DB.Where("email =? AND status = 1", email).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil

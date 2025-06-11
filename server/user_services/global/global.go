@@ -1,7 +1,8 @@
 package global
 
 import (
-	"TaskHub/configs"
+	"TaskHub/user_service/configs"
+
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 	"gorm.io/gorm"

@@ -1,7 +1,8 @@
 package validator
 
 import (
-	"TaskHub/repositories"
+	"TaskHub/user_service/repositories"
+
 	"github.com/go-playground/validator/v10"
 )
 

@@ -1,8 +1,9 @@
 package routers
 
 import (
-	"TaskHub/controllers"
-	"TaskHub/middleware"
+	"TaskHub/user_service/controllers"
+	"TaskHub/user_service/middleware"
+
 	"github.com/gin-gonic/gin"
 )
 

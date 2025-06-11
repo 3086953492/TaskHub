@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"TaskHub/models"
-	"TaskHub/services"
+	"TaskHub/user_service/models"
+	"TaskHub/user_service/services"
 	"net/http"
-	
+
 	"github.com/gin-gonic/gin"
 )
 

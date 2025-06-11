@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"TaskHub/services"
+	"TaskHub/user_service/services"
 
 	"github.com/gin-gonic/gin"
 )

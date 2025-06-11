@@ -1,8 +1,8 @@
 package initialize
 
 import (
-	"TaskHub/configs"
-	"TaskHub/global"
+	"TaskHub/user_service/configs"
+	"TaskHub/user_service/global"
 	"fmt"
 
 	"github.com/spf13/viper"

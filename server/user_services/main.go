@@ -1,13 +1,14 @@
 package main
 
 import (
-	"TaskHub/global"
-	"TaskHub/initialize"
-	"TaskHub/pkg/logger"
+	"TaskHub/user_service/global"
+	"TaskHub/user_service/initialize"
+	"TaskHub/user_service/pkg/logger"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
+
 	"go.uber.org/zap"
 )
 
@@ -46,7 +47,7 @@ func main() {
 	// 初始化 Gin 路由
 	r := initialize.InitRouters()
 
-	logger.Info("TaskHub 服务启动成功")
+	logger.Info("TaskHub/user_service 服务启动成功")
 	logger.Info(fmt.Sprintf("服务正在运行在端口 %d", port))
 
 	if err := r.Run(fmt.Sprintf(":%d", port)); err != nil {
