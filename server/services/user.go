@@ -3,129 +3,71 @@ package services
 import (
 	"TaskHub/global"
 	"TaskHub/models"
-	"errors"
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
+	"TaskHub/pkg/auth"
+	"TaskHub/pkg/logger"
+	"TaskHub/repositories"
+
+	"go.uber.org/zap"
 )
 
-func Register(req *models.RegisterRequest) (*models.User, error) {
+func LoginService(req *models.LoginRequest) (string, error) {
 
-	// 加密密码
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	user, err := repositories.Login(req)
+	if err != nil {
+		return "", err
+	}
+
+	// 生成JWT令牌
+	token, err := auth.GenerateToken(user.ID, user.Username, user.Role)
+	if err != nil {
+		return "", err
+	}
+
+	logger.Info("用户登录成功", zap.String("username", user.Username))
+
+	return token, nil
+}
+
+func RegisterService(req *models.RegisterRequest) (*models.User, error) {
+
+	if err := global.Validate.Struct(req); err != nil {
+		return nil, err
+	}
+
+	user, err := repositories.Register(req)
 	if err != nil {
 		return nil, err
 	}
 
-	user := &models.User{
-		Username: req.Username,
-		Email:    req.Email,
-		Password: string(hashedPassword),
-		Nickname: req.Nickname,
-		Status:   1,
-		Role:     "user",
-	}
-
-	if err := global.DB.Create(user).Error; err != nil {
-		return nil, err
-	}
+	logger.Info("用户注册成功", zap.String("username", user.Username))
 
 	return user, nil
 }
 
-func Login(req *models.LoginRequest) (*models.User, error) {
-	var user models.User
-	if err := global.DB.Where("username = ? AND status = 1", req.Username).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("用户名或密码错误")
-		}
-		return nil, err
+func UpdateService(req *models.UpdateUserRequest, userID uint) error {
+
+	user, err := repositories.GetUserByID(userID) // 从数据库中获取用户信息
+	if err != nil {
+		return err
 	}
 
-	// 验证密码
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		return nil, errors.New("用户名或密码错误")
+	// 校验用户名与邮箱是否与数据库中一致，若一致则将请求体中的数据置空，防止唯一校验不通过
+	if req.Username == user.Username {
+		req.Username = ""
+	}
+	if req.Email == user.Email {
+		req.Email = ""
 	}
 
-	return &user, nil
-}
-
-func GetUserByID(id uint) (*models.User, error) {
-	var user models.User
-	if err := global.DB.Where("id = ? AND status = 1", id).First(&user).Error; err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
-func UpdateUser(id uint, req *models.UpdateUserRequest) (*models.User, error) {
-	var user models.User
-	if err := global.DB.Where("id = ? AND status = 1", id).First(&user).Error; err != nil {
-		return nil, err
+	if err := global.Validate.Struct(req); err != nil {
+		return err
 	}
 
-	updates := make(map[string]interface{})
-	if req.Username != "" {
-		updates["username"] = req.Username
-	}
-	if req.Email != "" {
-		updates["email"] = req.Email
-	}
-	if req.Password != "" {
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return nil, err
-		}
-		updates["password"] = string(hashedPassword)
-	}
-	if req.Nickname != "" {
-		updates["nickname"] = req.Nickname
-	}
-	if req.Avatar != "" {
-		updates["avatar"] = req.Avatar
+	if _, err := repositories.UpdateUser(userID, req); err != nil {
+		return err
 	}
 
-	if len(updates) > 0 {
-		if err := global.DB.Model(&user).Updates(updates).Error; err != nil {
-			return nil, err
-		}
-	}
+	logger.Info("用户信息更新成功", zap.Uint("userID", userID))
 
-	return &user, nil
-}
-
-func DeleteUser(id uint) error {
-	return global.DB.Delete(&models.User{}, id).Error
-}
-
-func GetUsers(page, pageSize int) ([]*models.User, int64, error) {
-	var users []*models.User
-	var total int64
-
-	offset := (page - 1) * pageSize
-
-	if err := global.DB.Model(&models.User{}).Where("status = 1").Count(&total).Error; err != nil {
-		return nil, 0, err
-	}
-
-	if err := global.DB.Where("status = 1").Offset(offset).Limit(pageSize).Find(&users).Error; err != nil {
-		return nil, 0, err
-	}
-
-	return users, total, nil
-}
-
-func GetUserByUsername(username string) (*models.User, error) {
-	var user models.User
-	if err := global.DB.Where("username =? AND status = 1", username).First(&user).Error; err!= nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
-func GetUserByEmail(email string) (*models.User, error) {
-	var user models.User
-	if err := global.DB.Where("email =? AND status = 1", email).First(&user).Error; err!= nil {
-		return nil, err
-	}
-	return &user, nil
+	return nil
 }
