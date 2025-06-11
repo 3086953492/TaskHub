@@ -13,14 +13,22 @@ type User struct {
 	Username  string         `gorm:"unique;not null;size:50" json:"username"`
 	Email     string         `gorm:"unique;not null;size:100" json:"email"`
 	Password  string         `gorm:"not null;size:255" json:"-"`
-	Nickname  string         `gorm:"size:50" json:"nickname"`
-	Avatar    string         `gorm:"size:255" json:"avatar"`
 	Status    int            `gorm:"default:1" json:"status"`          // 1:正常 0:禁用
 	Role      string         `gorm:"default:user;size:20" json:"role"` // admin, user
 }
 
 func (User) TableName() string {
 	return "users"
+}
+
+type UserProfile struct {
+	UserID   uint   `gorm:"primaryKey" json:"user_id"`
+	Nickname string `gorm:"size:50" json:"nickname"`
+	Avatar   string `gorm:"size:255" json:"avatar"`
+}
+
+func (UserProfile) TableName() string {
+	return "user_profiles"
 }
 
 type RegisterRequest struct {

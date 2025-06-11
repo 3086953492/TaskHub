@@ -21,12 +21,20 @@ func Register(req *models.RegisterRequest) (*models.User, error) {
 		Username: req.Username,
 		Email:    req.Email,
 		Password: string(hashedPassword),
-		Nickname: req.Nickname,
 		Status:   1,
 		Role:     "user",
 	}
 
 	if err := global.DB.Create(user).Error; err != nil {
+		return nil, err
+	}
+	
+	userProfile := &models.UserProfile{
+		UserID:   user.ID,
+		Nickname: req.Nickname,
+	}
+
+	if err := global.DB.Create(userProfile).Error; err != nil {
 		return nil, err
 	}
 
@@ -64,29 +72,43 @@ func UpdateUser(id uint, req *models.UpdateUserRequest) (*models.User, error) {
 		return nil, err
 	}
 
-	updates := make(map[string]interface{})
+	// 存储用户表的更新
+	userUpdates := make(map[string]interface{})
+
+	// 存储用户信息表的更新
+	userProfileUpdates := make(map[string]interface{})
+
+	// 非空字段加入更新
 	if req.Username != "" {
-		updates["username"] = req.Username
+		userUpdates["username"] = req.Username
 	}
 	if req.Email != "" {
-		updates["email"] = req.Email
+		userUpdates["email"] = req.Email
 	}
 	if req.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
 			return nil, err
 		}
-		updates["password"] = string(hashedPassword)
+		userUpdates["password"] = string(hashedPassword)
 	}
 	if req.Nickname != "" {
-		updates["nickname"] = req.Nickname
+		userProfileUpdates["nickname"] = req.Nickname
 	}
 	if req.Avatar != "" {
-		updates["avatar"] = req.Avatar
+		userProfileUpdates["avatar"] = req.Avatar
 	}
 
-	if len(updates) > 0 {
-		if err := global.DB.Model(&user).Updates(updates).Error; err != nil {
+	// 更新用户表
+	if len(userUpdates) > 0 {
+		if err := global.DB.Model(&user).Updates(userUpdates).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	// 更新用户信息表
+	if len(userProfileUpdates) > 0 {
+		if err := global.DB.Model(&models.UserProfile{}).Where("user_id = ?", id).Updates(userProfileUpdates).Error; err != nil {
 			return nil, err
 		}
 	}
