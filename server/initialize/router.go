@@ -10,6 +10,6 @@ func InitRouters() *gin.Engine {
 
 	// 注册路由
 	routers.LoadUserRouters(router)
-
+	routers.LoadJwtRouters(router)
 	return router
 }

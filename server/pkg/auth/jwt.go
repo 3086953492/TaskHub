@@ -43,7 +43,7 @@ func ParseToken(tokenString string) (*Claims, error) {
 		return claims, nil
 	}
 
-	return nil, errors.New("invalid token")
+	return nil, errors.New("无效的token")
 }
 
 func RefreshToken(tokenString string) (string, error) {
@@ -52,10 +52,10 @@ func RefreshToken(tokenString string) (string, error) {
 		return "", err
 	}
 
-	// 检查token是否即将过期（还有30分钟过期）
-	if time.Until(claims.ExpiresAt.Time) < 30*time.Minute {
+	// 检查token是否即将过期（还有10分钟过期）
+	if time.Until(claims.ExpiresAt.Time) < 10*time.Minute {
 		return GenerateToken(claims.UserID, claims.Username, claims.Role)
 	}
 
-	return "", errors.New("token still valid, no need to refresh")
+	return tokenString, errors.New("token有效期仍长，无需刷新")
 }
