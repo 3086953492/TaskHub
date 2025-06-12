@@ -1,1 +1,3 @@
 server/user_service/logs/*
+server/img_service/logs/*
+server/img_service/img/*

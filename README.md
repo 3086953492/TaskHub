@@ -45,6 +45,11 @@ http {
         server 127.0.0.1:8081;
     }
 
+    # 图片服务代理
+    upstream img_server {
+        server 127.0.0.1:8082;
+    }
+
     server {
         listen 8080;
 
@@ -56,6 +61,12 @@ http {
 
         location /auth {
             proxy_pass      http://user_server;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+        
+        location /img {
+            proxy_pass      http://img_server;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
         }

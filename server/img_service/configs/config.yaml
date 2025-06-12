@@ -1,0 +1,15 @@
+server:
+  port: 8082
+  mode: debug
+
+jwt:
+  secret: "taskhubkey"
+  expire: 1h
+
+log:
+  level: info
+  filename: logs/taskhub.log
+  maxSize: 10
+  maxBackups: 3
+  maxAge: 7
+  compress: true
