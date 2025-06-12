@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8081
   mode: debug
 
 Database:
@@ -28,4 +28,4 @@ log:
   maxSize: 10
   maxBackups: 3
   maxAge: 7
-  compress: true 
+  compress: true
