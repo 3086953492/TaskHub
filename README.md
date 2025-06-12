@@ -17,7 +17,7 @@
 ### 👤 用户服务
 ```powershell
 # 进入服务目录
-cd server\user_services
+cd server\user_service
 
 # 启动服务（默认端口 8081）
 go run main.go
@@ -65,4 +65,4 @@ nginx.exe
 ---
 
 ## 📚 接口文档
-### [用户服务接口文档](server/user_services/API_DOCUMENTATION.md)
+### [用户服务接口文档](server/user_service/API_DOCUMENTATION.md)

@@ -1,0 +1,4 @@
+{"level":"error","time":"2025-06-12T14:37:18.523+0800","caller":"logger/logger.go:26","msg":"初始化数据库失败","error":"failed to connect database: Error 1049 (42000): Unknown database 'taskhub_user'","stacktrace":"TaskHub/user_service/pkg/logger.Error\n\tE:/yjg/TaskHub/server/user_services/pkg/logger/logger.go:26\nmain.main\n\te:/yjg/TaskHub/server/user_services/main.go:28\nruntime.main\n\tC:/Program Files (x86)/Go/src/runtime/proc.go:272"}
+{"level":"info","time":"2025-06-12T14:37:59.552+0800","caller":"logger/logger.go:18","msg":"TaskHub/user_service 服务启动成功"}
+{"level":"info","time":"2025-06-12T14:37:59.584+0800","caller":"logger/logger.go:18","msg":"服务正在运行在端口 8081"}
+{"level":"info","time":"2025-06-12T14:40:15.608+0800","caller":"logger/logger.go:18","msg":"用户注册成功","username":"user"}
