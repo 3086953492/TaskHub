@@ -3,31 +3,42 @@ package services
 import (
 	"TaskHub/img_service/pkg/logger"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"os"
 	"path/filepath"
-	"time"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
-func UploadFile(file *os.File) (string, error) {
+func UploadFile(src multipart.File, originalFileName string) (string, error) {
+	// 创建img目录
 	err := os.MkdirAll("./img", os.ModePerm)
 	if err != nil {
 		return "", err
 	}
 
-	// 生成安全的唯一文件名
-	fileName := filepath.Base(file.Name())
-	ext := filepath.Ext(fileName)
-	baseName := fileName[:len(fileName)-len(ext)]
-	safeName := fmt.Sprintf("%s_%d%s", baseName, time.Now().UnixNano(), ext)
+	// 提取文件扩展名
+	ext := filepath.Ext(originalFileName)
 
-	// 移动文件
+	// 生成更短的文件名（UUID + 扩展名）
+	safeName := fmt.Sprintf("%s%s", uuid.New().String(), ext)
+
+	// 创建目标文件
 	destPath := filepath.Join("./img", safeName)
-	err = os.Rename(file.Name(), destPath)
+	dst, err := os.Create(destPath)
 	if err != nil {
 		return "", err
 	}
+	defer dst.Close()
+
+	// 复制文件内容
+	if _, err = io.Copy(dst, src); err != nil {
+		os.Remove(destPath) // 失败时清理文件
+		return "", err
+	}
+
 	logger.Info("图片上传成功", zap.String("path", destPath))
 	return destPath, nil
 }

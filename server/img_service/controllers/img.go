@@ -2,9 +2,7 @@ package controllers
 
 import (
 	"TaskHub/img_service/services"
-	"io"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +26,7 @@ func UploadHandler(c *gin.Context) {
 		return
 	}
 
-	// 打开文件并调用上传服务
+	// 确保上传的文件可以被读取
 	src, err := file.Open()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -36,21 +34,8 @@ func UploadHandler(c *gin.Context) {
 	}
 	defer src.Close()
 
-	// 转换为os.File以便上传
-	dst, err := os.Create(file.Filename)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	defer dst.Close()
-
-	if _, err = io.Copy(dst, src); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	// 调用上传服务
-	filePath, err := services.UploadFile(dst)
+	// 调用上传服务，直接传递文件内容和文件名
+	filePath, err := services.UploadFile(src, file.Filename)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
