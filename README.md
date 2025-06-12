@@ -83,3 +83,4 @@ nginx.exe
 
 ## 📚 接口文档
 ### [用户服务接口文档](server/user_service/API_DOCUMENTATION.md)
+### [图片服务接口文档](server/img_service/API文档.md)
