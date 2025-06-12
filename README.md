@@ -53,6 +53,12 @@ http {
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
         }
+
+        location /auth {
+            proxy_pass      http://user_server;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
     }
 }
 ```
