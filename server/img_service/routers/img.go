@@ -11,5 +11,6 @@ func LoadImgRouters(router *gin.Engine) {
 	imgRouters := router.Group("/img")
 	{
 		imgRouters.POST("/", middleware.AuthMiddleware(), controllers.UploadHandler)
+		imgRouters.Static("/", "./img")
 	}
 }
