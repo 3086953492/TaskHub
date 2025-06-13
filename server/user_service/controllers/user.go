@@ -51,7 +51,7 @@ func UpdateHandler(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetUint("userID") // 从上下文中获取用户ID
+	userID := c.GetUint("user_id") // 从上下文中获取用户ID
 
 	err := services.UpdateService(&req, userID)
 	if err != nil {
