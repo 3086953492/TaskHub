@@ -52,9 +52,15 @@ func GetTaskByID(id uint) (*models.Task, error) {
 	return &task, nil
 }
 
-func GetTaskList(page, pageSize int) ([]models.Task, error) {
-	var tasks []models.Task
-	if err := global.DB.Preload("TaskInfo").Preload("TaskImages").Offset((page - 1) * pageSize).Limit(pageSize).Find(&tasks).Error; err != nil {
+func GetTaskList(page, pageSize int) ([]models.TaskListResponse, error) {
+	var tasks []models.TaskListResponse
+	query := global.DB.Model(&models.Task{}).
+		Joins("LEFT JOIN task_info ON tasks.id = task_info.task_id").
+		Select("tasks.id as task_id, tasks.status, tasks.created_at, task_info.title, task_info.priority, task_info.due_date").
+		Offset((page - 1) * pageSize).
+		Limit(pageSize)
+
+	if err := query.Find(&tasks).Error; err != nil {
 		return nil, err
 	}
 	return tasks, nil
@@ -73,10 +79,10 @@ func AssignTask(taskID, userID uint) error {
 		return err
 	}
 	if err := global.DB.Create(&models.TaskHistory{
-		TaskID:    taskID,
-		Action:    "分配",
-		FieldName: "assignee_id",
-		NewValue:  strconv.Itoa(int(userID)),
+		TaskID:     taskID,
+		Action:     "分配",
+		FieldName:  "assignee_id",
+		NewValue:   strconv.Itoa(int(userID)),
 		OperatorID: userID,
 		CreatedAt:  time.Now(),
 	}).Error; err != nil {

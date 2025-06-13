@@ -47,3 +47,29 @@ func AssignHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "任务分配成功"})
 }
+
+func ListHandler(c *gin.Context) {
+	pageStr := c.Query("page")
+	pageSizeStr := c.Query("page_size")
+
+	var page uint
+	var pageSize uint
+
+	if _, err := fmt.Sscanf(pageStr, "%d", &page); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的页码"})
+		return
+	}
+
+	if _, err := fmt.Sscanf(pageSizeStr, "%d", &pageSize); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的页大小"})
+		return
+	}
+
+	tasks, err := services.GetTaskList(page, pageSize)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, tasks)
+}

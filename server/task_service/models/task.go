@@ -49,33 +49,32 @@ func (t *TaskHistory) TableName() string {
 	return "task_histories"
 }
 
-
 // 任务图像表
 type TaskImage struct {
-    ID        uint       `gorm:"primaryKey;autoIncrement" json:"id"`
-    TaskID    uint       `json:"task_id"`
-    ImageURL  string     `gorm:"size:500;not null" json:"image_url" ` // 图像URL路径
-    SortOrder int        `gorm:"default:0" json:"sort_order"`        // 排序顺序
-    CreatedAt time.Time  `json:"created_at"`
-    DeletedAt *time.Time `gorm:"index" json:"deleted_at"`
+	ID        uint       `gorm:"primaryKey;autoIncrement" json:"id"`
+	TaskID    uint       `json:"task_id"`
+	ImageURL  string     `gorm:"size:500;not null" json:"image_url" ` // 图像URL路径
+	SortOrder int        `gorm:"default:0" json:"sort_order"`         // 排序顺序
+	CreatedAt time.Time  `json:"created_at"`
+	DeletedAt *time.Time `gorm:"index" json:"deleted_at"`
 }
 
 func (t *TaskImage) TableName() string {
-    return "task_images"
+	return "task_images"
 }
 
 // 任务历史记录图像表
 type TaskHistoryImage struct {
-    ID         uint       `gorm:"primaryKey;autoIncrement" json:"id"`
-    HistoryID  uint       `json:"history_id"`
-    ImageURL   string     `gorm:"size:500;not null" json:"image_url"` // 图像URL路径
-    SortOrder  int        `gorm:"default:0" json:"sort_order"`        // 排序顺序
-    CreatedAt  time.Time  `json:"created_at"`
-    DeletedAt  *time.Time `gorm:"index" json:"deleted_at"`
+	ID        uint       `gorm:"primaryKey;autoIncrement" json:"id"`
+	HistoryID uint       `json:"history_id"`
+	ImageURL  string     `gorm:"size:500;not null" json:"image_url"` // 图像URL路径
+	SortOrder int        `gorm:"default:0" json:"sort_order"`        // 排序顺序
+	CreatedAt time.Time  `json:"created_at"`
+	DeletedAt *time.Time `gorm:"index" json:"deleted_at"`
 }
 
 func (t *TaskHistoryImage) TableName() string {
-    return "task_history_images"
+	return "task_history_images"
 }
 
 type CreateTaskRequest struct {
@@ -84,4 +83,13 @@ type CreateTaskRequest struct {
 	Priority    int        `json:"priority" binding:"required,oneof=1 2 3"`
 	DueDate     *time.Time `json:"due_date"`
 	Images      []string   `json:"images" validate:"imagesURL"`
+}
+
+type TaskListResponse struct {
+	TaskID    uint       `json:"task_id"`
+	Status    int        `json:"status"`
+	CreatedAt time.Time  `json:"created_at"`
+	Title     string     `json:"title"`
+	Priority  int        `json:"priority"`
+	DueDate   *time.Time `json:"due_date"`
 }

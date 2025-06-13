@@ -41,3 +41,7 @@ func AssignTask(taskID, userID uint) error {
 
 	return nil
 }
+
+func GetTaskList(page, pageSize uint) ([]models.TaskListResponse, error) {
+	return repositories.GetTaskList(int(page), int(pageSize))
+}
