@@ -9,6 +9,6 @@ import (
 func InitRouters() *gin.Engine {
 	router := gin.Default()
 
-	routers.LoadTaskRouter(router)
+	routers.LoadTaskRouters(router)
 	return router
 }

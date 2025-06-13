@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func LoadTaskRouter(r *gin.Engine) {
+func LoadTaskRouters(r *gin.Engine) {
 	task := r.Group("/task")
 	task.POST("", middleware.AuthMiddleware(), controllers.CreateHandler)
 }
