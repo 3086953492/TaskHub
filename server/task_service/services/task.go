@@ -25,7 +25,7 @@ func AssignTask(taskID, userID uint) error {
 	// 确保任务未分配
 	assignee_id, err := repositories.GetTaskAssigneeID(taskID)
 
-	if err != nil{
+	if err != nil {
 		return errors.New("获取分配状态失败:" + err.Error())
 	}
 
@@ -36,7 +36,7 @@ func AssignTask(taskID, userID uint) error {
 	if err := repositories.AssignTask(taskID, userID); err != nil {
 		return err
 	}
-	
+
 	logger.Info(fmt.Sprintf("任务分配成功, 任务ID: %d，分配人ID: %d", taskID, userID))
 
 	return nil
