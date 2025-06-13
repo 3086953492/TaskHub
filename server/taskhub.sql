@@ -97,3 +97,33 @@ CREATE TABLE
         KEY `idx_action_created` (`action`, `created_at`), 
         CONSTRAINT `fk_task_history_task` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '任务历史记录表';
+
+-- 创建任务图像表
+CREATE TABLE
+    IF NOT EXISTS `task_images` (
+        `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        `task_id` BIGINT UNSIGNED NOT NULL,
+        `image_url` VARCHAR(500) NOT NULL COMMENT '图像URL路径',
+        `sort_order` INT DEFAULT '0' COMMENT '排序顺序',
+        `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `deleted_at` DATETIME DEFAULT NULL,
+        PRIMARY KEY (`id`),
+        KEY `idx_task_sort` (`task_id`, `sort_order`),
+        KEY `idx_task_created` (`task_id`, `created_at`),
+        CONSTRAINT `fk_task_image_task` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '任务图像表';
+
+-- 创建任务历史记录图像表
+CREATE TABLE
+    IF NOT EXISTS `task_history_images` (
+        `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        `history_id` BIGINT UNSIGNED NOT NULL,
+        `image_url` VARCHAR(500) NOT NULL COMMENT '图像URL路径',
+        `sort_order` INT DEFAULT '0' COMMENT '排序顺序',
+        `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `deleted_at` DATETIME DEFAULT NULL,
+        PRIMARY KEY (`id`),
+        KEY `idx_history_sort` (`history_id`, `sort_order`),
+        KEY `idx_history_created` (`history_id`, `created_at`),
+        CONSTRAINT `fk_task_history_image_history` FOREIGN KEY (`history_id`) REFERENCES `task_histories` (`id`) ON DELETE CASCADE
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '任务历史记录图像表';

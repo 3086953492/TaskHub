@@ -24,6 +24,17 @@ func CreateTask(task *models.CreateTaskRequest, creatorID uint) error {
 		DueDate:     task.DueDate,
 	}
 
+	for i, image := range task.Images {
+		taskImageModel := &models.TaskImage{
+			TaskID:    taskModel.ID,
+			ImageURL:  image,
+			SortOrder: i,
+		}
+		if err := global.DB.Create(taskImageModel).Error; err != nil {
+			return err
+		}
+	}
+
 	if err := global.DB.Create(taskInfoModel).Error; err != nil {
 		return err
 	}
