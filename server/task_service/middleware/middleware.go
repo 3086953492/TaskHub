@@ -25,3 +25,14 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func AdminAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role := c.GetString("role")
+		if role != "admin" {
+			c.AbortWithStatusJSON(403, gin.H{"error": "需要管理员权限"})
+			return
+		}
+		c.Next()
+	}
+}
