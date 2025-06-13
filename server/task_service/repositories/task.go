@@ -44,9 +44,13 @@ func CreateTask(task *models.CreateTaskRequest, creatorID uint) error {
 	return nil
 }
 
-func GetTaskByID(id uint) (*models.Task, error) {
-	var task models.Task
-	if err := global.DB.Preload("TaskInfo").Preload("TaskImages").First(&task, id).Error; err != nil {
+func GetTaskDetail(id uint) (*models.TaskDetailResponse, error) {
+	var task models.TaskDetailResponse
+	if err := global.DB.Model(&models.Task{}).
+		Joins("LEFT JOIN task_info ON tasks.id = task_info.task_id").
+		Joins("LEFT JOIN task_images ON tasks.id = task_images.task_id").
+		Select("tasks.id as task_id, tasks.status, tasks.created_at, tasks.updated_at, task_info.title, task_info.description, task_info.priority, task_info.due_date, task_info.completed_at, task_images.image_url").
+		First(&task, id).Error; err != nil {
 		return nil, err
 	}
 	return &task, nil

@@ -73,3 +73,22 @@ func ListHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, tasks)
 }
+
+func DetailHandler(c *gin.Context) {
+	taskIDStr := c.Query("id")
+
+	var taskID uint
+
+	if _, err := fmt.Sscanf(taskIDStr, "%d", &taskID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的任务ID"})
+		return
+	}
+
+	task, err := services.GetTaskDetail(taskID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, task)
+}

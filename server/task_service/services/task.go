@@ -45,3 +45,7 @@ func AssignTask(taskID, userID uint) error {
 func GetTaskList(page, pageSize uint) ([]models.TaskListResponse, error) {
 	return repositories.GetTaskList(int(page), int(pageSize))
 }
+
+func GetTaskDetail(taskID uint) (*models.TaskDetailResponse, error) {
+	return repositories.GetTaskDetail(taskID)
+}

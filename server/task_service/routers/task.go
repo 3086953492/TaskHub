@@ -12,4 +12,5 @@ func LoadTaskRouters(r *gin.Engine) {
 	task.POST("", middleware.AuthMiddleware(), controllers.CreateHandler)
 	task.PATCH("", middleware.AuthMiddleware(), controllers.AssignHandler)
 	task.GET("/list", middleware.AuthMiddleware(), controllers.ListHandler)
+	task.GET("/detail", middleware.AuthMiddleware(), controllers.DetailHandler)
 }
