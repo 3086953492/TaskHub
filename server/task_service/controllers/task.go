@@ -84,7 +84,9 @@ func DetailHandler(c *gin.Context) {
 		return
 	}
 
-	task, err := services.GetTaskDetail(taskID)
+	userID := c.GetUint("user_id")
+	role := c.GetString("role")
+	task, err := services.GetTaskDetail(taskID, userID, role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
