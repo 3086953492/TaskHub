@@ -50,6 +50,11 @@ http {
         server 127.0.0.1:8082;
     }
 
+    # 任务服务代理
+    upstream task_server {
+        server 127.0.0.1:8083;
+    }
+
     server {
         listen 8080;
 
@@ -67,6 +72,12 @@ http {
         
         location /img {
             proxy_pass      http://img_server;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+
+        location /task {
+            proxy_pass      http://task_server;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
         }
