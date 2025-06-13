@@ -3,6 +3,8 @@ package repositories
 import (
 	"TaskHub/task_service/global"
 	"TaskHub/task_service/models"
+	"strconv"
+	"time"
 )
 
 func CreateTask(task *models.CreateTaskRequest, creatorID uint) error {
@@ -39,5 +41,46 @@ func CreateTask(task *models.CreateTaskRequest, creatorID uint) error {
 		return err
 	}
 
+	return nil
+}
+
+func GetTaskByID(id uint) (*models.Task, error) {
+	var task models.Task
+	if err := global.DB.Preload("TaskInfo").Preload("TaskImages").First(&task, id).Error; err != nil {
+		return nil, err
+	}
+	return &task, nil
+}
+
+func GetTaskList(page, pageSize int) ([]models.Task, error) {
+	var tasks []models.Task
+	if err := global.DB.Preload("TaskInfo").Preload("TaskImages").Offset((page - 1) * pageSize).Limit(pageSize).Find(&tasks).Error; err != nil {
+		return nil, err
+	}
+	return tasks, nil
+}
+
+func GetTaskAssigneeID(taskID uint) (uint, error) {
+	var task models.Task
+	if err := global.DB.Model(&models.Task{}).Where("id = ?", taskID).Select("assignee_id").First(&task).Error; err != nil {
+		return 0, err
+	}
+	return task.AssigneeID, nil
+}
+
+func AssignTask(taskID, userID uint) error {
+	if err := global.DB.Model(&models.Task{}).Where("id = ?", taskID).Update("assignee_id", userID).Error; err != nil {
+		return err
+	}
+	if err := global.DB.Create(&models.TaskHistory{
+		TaskID:    taskID,
+		Action:    "分配",
+		FieldName: "assignee_id",
+		NewValue:  strconv.Itoa(int(userID)),
+		OperatorID: userID,
+		CreatedAt:  time.Now(),
+	}).Error; err != nil {
+		return err
+	}
 	return nil
 }

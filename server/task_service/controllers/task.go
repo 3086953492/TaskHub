@@ -3,6 +3,7 @@ package controllers
 import (
 	"TaskHub/task_service/models"
 	"TaskHub/task_service/services"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,4 +24,27 @@ func CreateHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "任务创建成功"})
+}
+
+func AssignHandler(c *gin.Context) {
+
+	taskIDStr := c.Query("id")
+
+	// 将字符串转换为uint
+	var taskID uint
+	_,err := fmt.Sscanf(taskIDStr, "%d", &taskID)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的任务ID"})
+		return
+	}
+	
+	userID := c.GetUint("user_id")
+	
+	if err := services.AssignTask(taskID, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "任务分配成功"})
 }
