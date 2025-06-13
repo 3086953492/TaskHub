@@ -19,7 +19,6 @@ func (t *Task) TableName() string {
 
 // 任务信息表
 type TaskInfo struct {
-	ID          uint       `gorm:"primaryKey;autoIncrement" json:"id"`
 	TaskID      uint       `gorm:"uniqueIndex" json:"task_id"`
 	Title       string     `gorm:"size:200;not null" json:"title"` // 任务标题
 	Description string     `json:"description"`                    // 任务描述

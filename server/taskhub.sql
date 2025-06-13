@@ -62,14 +62,12 @@ CREATE TABLE
 -- 创建任务信息表
 CREATE TABLE
     IF NOT EXISTS `task_info` (
-        `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         `task_id` BIGINT UNSIGNED NOT NULL,
         `title` VARCHAR(200) NOT NULL COMMENT '任务标题',
         `description` TEXT DEFAULT NULL COMMENT '任务描述',
         `priority` INT DEFAULT '3' COMMENT '优先级 1:高 2:中 3:低',
         `due_date` DATETIME DEFAULT NULL COMMENT '截止日期',
         `completed_at` DATETIME DEFAULT NULL COMMENT '完成时间',
-        PRIMARY KEY (`id`),
         UNIQUE KEY `idx_task_id` (`task_id`), 
         KEY `idx_priority_due` (`priority`, `due_date`), 
         KEY `idx_due_date` (`due_date`), 
