@@ -111,6 +111,14 @@ func GetUnassignedTasks(page, pageSize int) ([]models.TaskListResponse, error) {
 	if err := query.Find(&tasks).Error; err != nil {
 		return nil, err
 	}
-	
+
 	return tasks, nil
+}
+
+func GetTaskHistory(taskID uint) ([]models.TaskHistory, error) {
+	var taskHistory []models.TaskHistory
+	if err := global.DB.Model(&models.TaskHistory{}).Where("task_id = ?", taskID).Find(&taskHistory).Error; err != nil {
+		return nil, err
+	}
+	return taskHistory, nil
 }

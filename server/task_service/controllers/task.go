@@ -117,3 +117,22 @@ func ListUnassigned(c *gin.Context) {
 
 	c.JSON(200, tasks)
 }
+
+func HistoryHandler(c *gin.Context) {
+	taskIDStr := c.Query("id")
+
+	var taskID uint
+
+	if _, err := fmt.Sscanf(taskIDStr, "%d", &taskID); err != nil {
+		c.JSON(400, gin.H{"error": "无效的任务ID"})
+	}
+
+	userID := c.GetUint("user_id")
+	role := c.GetString("role")
+	history, err := services.GetTaskHistory(taskID, userID, role)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+	}
+
+	c.JSON(200, history)
+}

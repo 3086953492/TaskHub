@@ -62,3 +62,16 @@ func GetTaskDetail(taskID, userID uint, role string) (*models.TaskDetailResponse
 func GetUnassignedTasks(page, pageSize uint) ([]models.TaskListResponse, error) {
 	return repositories.GetUnassignedTasks(int(page), int(pageSize))
 }
+
+func GetTaskHistory(taskID, userID uint, role string) ([]models.TaskHistory, error) {
+	if role != "admin" {
+		taskAssigneeID, err := repositories.GetTaskAssigneeID(taskID)
+		if err != nil {
+			return nil, err
+		}
+		if taskAssigneeID != userID {
+			return nil, errors.New("无权限查看任务详情")
+		}
+	}
+	return repositories.GetTaskHistory(taskID)
+}
