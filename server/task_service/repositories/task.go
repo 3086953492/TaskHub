@@ -79,9 +79,11 @@ func GetTaskAssigneeID(taskID uint) (uint, error) {
 }
 
 func AssignTask(taskID, userID uint) error {
-	if err := global.DB.Model(&models.Task{}).Where("id = ?", taskID).Update("assignee_id", userID).Error; err != nil {
+
+	if err := global.DB.Model(&models.Task{}).Where("id = ?", taskID).Update("assignee_id", userID).Update("status", 2).Error; err != nil {
 		return err
 	}
+
 	if err := global.DB.Create(&models.TaskHistory{
 		TaskID:     taskID,
 		Action:     "分配",
