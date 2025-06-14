@@ -10,13 +10,49 @@ import (
 )
 
 func CreateTask(task *models.CreateTaskRequest, creatorID uint) error {
+	// 参数验证
 	if err := global.Validate.Struct(task); err != nil {
 		return err
 	}
-	if err := repositories.CreateTask(task, creatorID); err != nil {
+
+	// 开启事务
+	tx := global.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 创建任务基本记录
+	taskRecord, err := repositories.CreateTaskRecord(tx, creatorID)
+	if err != nil {
+		tx.Rollback()
 		return err
 	}
-	logger.Info(fmt.Sprintf("创建任务成功, 创建人ID: %d，任务: %v", creatorID, task))
+
+	// 创建任务信息记录
+	if err := repositories.CreateTaskInfo(tx, taskRecord.ID, task); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 创建任务图片记录（如果有图片）
+	if len(task.Images) > 0 {
+		if err := repositories.CreateTaskImages(tx, taskRecord.ID, task.Images); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
+	logger.Info(fmt.Sprintf("创建任务成功, 任务ID: %d, 创建人ID: %d，任务: %v", taskRecord.ID, creatorID, task))
 	return nil
 }
 

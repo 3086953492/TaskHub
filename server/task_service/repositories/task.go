@@ -5,42 +5,49 @@ import (
 	"TaskHub/task_service/models"
 	"strconv"
 	"time"
+
+	"gorm.io/gorm"
 )
 
-func CreateTask(task *models.CreateTaskRequest, creatorID uint) error {
-
+// 创建任务基本记录
+func CreateTaskRecord(tx *gorm.DB, creatorID uint) (*models.Task, error) {
 	taskModel := &models.Task{
 		Status:    1,
 		CreatorID: creatorID,
 	}
 
-	if err := global.DB.Create(taskModel).Error; err != nil {
-		return err
+	if err := tx.Create(taskModel).Error; err != nil {
+		return nil, err
 	}
 
+	return taskModel, nil
+}
+
+// 创建任务信息记录
+func CreateTaskInfo(tx *gorm.DB, taskID uint, req *models.CreateTaskRequest) error {
 	taskInfoModel := &models.TaskInfo{
-		TaskID:      taskModel.ID,
-		Title:       task.Title,
-		Description: task.Description,
-		Priority:    task.Priority,
-		DueDate:     task.DueDate,
+		TaskID:      taskID,
+		Title:       req.Title,
+		Description: req.Description,
+		Priority:    req.Priority,
+		DueDate:     req.DueDate,
 	}
 
-	for i, image := range task.Images {
+	return tx.Create(taskInfoModel).Error
+}
+
+// 创建任务图片记录
+func CreateTaskImages(tx *gorm.DB, taskID uint, images []string) error {
+	for i, imageURL := range images {
 		taskImageModel := &models.TaskImage{
-			TaskID:    taskModel.ID,
-			ImageURL:  image,
+			TaskID:    taskID,
+			ImageURL:  imageURL,
 			SortOrder: i,
 		}
-		if err := global.DB.Create(taskImageModel).Error; err != nil {
+		if err := tx.Create(taskImageModel).Error; err != nil {
 			return err
 		}
 	}
-
-	if err := global.DB.Create(taskInfoModel).Error; err != nil {
-		return err
-	}
-
 	return nil
 }
 
