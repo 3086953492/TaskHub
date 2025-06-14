@@ -115,10 +115,26 @@ func GetUnassignedTasks(page, pageSize int) ([]models.TaskListResponse, error) {
 	return tasks, nil
 }
 
-func GetTaskHistory(taskID uint) ([]models.TaskHistory, error) {
-	var taskHistory []models.TaskHistory
-	if err := global.DB.Model(&models.TaskHistory{}).Where("task_id = ?", taskID).Find(&taskHistory).Error; err != nil {
+// 获取任务历史记录基本信息
+func GetTaskHistoryRecords(taskID uint) ([]models.TaskHistory, error) {
+	var histories []models.TaskHistory
+	if err := global.DB.Where("task_id = ?", taskID).Order("created_at DESC").Find(&histories).Error; err != nil {
 		return nil, err
 	}
-	return taskHistory, nil
+	return histories, nil
+}
+
+// 获取历史记录对应的图片
+func GetTaskHistoryImages(historyID uint) ([]string, error) {
+	var images []string
+	var historyImages []models.TaskHistoryImage
+	if err := global.DB.Where("history_id = ? AND deleted_at IS NULL", historyID).
+		Order("sort_order ASC").Find(&historyImages).Error; err != nil {
+		return nil, err
+	}
+
+	for _, img := range historyImages {
+		images = append(images, img.ImageURL)
+	}
+	return images, nil
 }

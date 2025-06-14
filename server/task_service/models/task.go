@@ -107,3 +107,15 @@ type TaskDetailResponse struct {
 	CompletedAt *time.Time `json:"completed_at"`
 	Images      []string   `json:"images"`
 }
+
+type TaskHistoryResponse struct {
+	ID         uint      `json:"id"`
+	Action     string    `json:"action"`
+	FieldName  string    `json:"field_name"`
+	OldValue   string    `json:"old_value"`
+	NewValue   string    `json:"new_value"`
+	OperatorID uint      `json:"operator_id"`
+	Remark     string    `json:"remark"`
+	CreatedAt  time.Time `json:"created_at"`
+	Images     []string  `json:"images"`
+}

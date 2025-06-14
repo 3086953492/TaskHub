@@ -63,7 +63,7 @@ func GetUnassignedTasks(page, pageSize uint) ([]models.TaskListResponse, error) 
 	return repositories.GetUnassignedTasks(int(page), int(pageSize))
 }
 
-func GetTaskHistory(taskID, userID uint, role string) ([]models.TaskHistory, error) {
+func GetTaskHistory(taskID, userID uint, role string) ([]models.TaskHistoryResponse, error) {
 	if role != "admin" {
 		taskAssigneeID, err := repositories.GetTaskAssigneeID(taskID)
 		if err != nil {
@@ -73,5 +73,36 @@ func GetTaskHistory(taskID, userID uint, role string) ([]models.TaskHistory, err
 			return nil, errors.New("无权限查看任务详情")
 		}
 	}
-	return repositories.GetTaskHistory(taskID)
+
+	// 获取历史记录基本信息
+	histories, err := repositories.GetTaskHistoryRecords(taskID)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []models.TaskHistoryResponse
+	for _, history := range histories {
+		// 获取该历史记录对应的图片
+		images, err := repositories.GetTaskHistoryImages(history.ID)
+		if err != nil {
+			// 图片获取失败时，继续处理但记录空数组
+			images = []string{}
+		}
+
+		// 构建响应对象
+		response := models.TaskHistoryResponse{
+			ID:         history.ID,
+			Action:     history.Action,
+			FieldName:  history.FieldName,
+			OldValue:   history.OldValue,
+			NewValue:   history.NewValue,
+			OperatorID: history.OperatorID,
+			Remark:     history.Remark,
+			CreatedAt:  history.CreatedAt,
+			Images:     images,
+		}
+		result = append(result, response)
+	}
+
+	return result, nil
 }
