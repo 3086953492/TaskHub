@@ -94,3 +94,26 @@ func DetailHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, task)
 }
+
+func ListUnassigned(c *gin.Context) {
+	pageStr := c.Query("page")
+	pageSizeStr := c.Query("page_size")
+
+	var page uint
+	var pageSize uint
+
+	if _, err := fmt.Sscanf(pageStr, "%d", &page); err != nil {
+		c.JSON(400, gin.H{"error": "无效的页码"})
+	}
+
+	if _, err := fmt.Sscanf(pageSizeStr, "%d", &pageSize); err != nil {
+		c.JSON(400, gin.H{"error": "无效的页大小"})
+	}
+
+	tasks, err := services.GetUnassignedTasks(page, pageSize)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+	}
+
+	c.JSON(200, tasks)
+}

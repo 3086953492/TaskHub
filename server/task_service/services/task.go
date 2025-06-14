@@ -3,8 +3,8 @@ package services
 import (
 	"TaskHub/task_service/global"
 	"TaskHub/task_service/models"
-	"TaskHub/task_service/utils/logger"
 	"TaskHub/task_service/repositories"
+	"TaskHub/task_service/utils/logger"
 	"errors"
 	"fmt"
 )
@@ -57,4 +57,8 @@ func GetTaskDetail(taskID, userID uint, role string) (*models.TaskDetailResponse
 		}
 	}
 	return repositories.GetTaskDetail(taskID)
+}
+
+func GetUnassignedTasks(page, pageSize uint) ([]models.TaskListResponse, error) {
+	return repositories.GetUnassignedTasks(int(page), int(pageSize))
 }

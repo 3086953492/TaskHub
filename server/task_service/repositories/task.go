@@ -96,3 +96,21 @@ func AssignTask(taskID, userID uint) error {
 	}
 	return nil
 }
+
+func GetUnassignedTasks(page, pageSize int) ([]models.TaskListResponse, error) {
+
+	var tasks []models.TaskListResponse
+
+	query := global.DB.Model(&models.Task{}).
+		Joins("LEFT JOIN task_info ON tasks.id = task_info.task_id").
+		Select("tasks.id as task_id, tasks.status, tasks.created_at, task_info.title, task_info.priority, task_info.due_date").
+		Offset((page - 1) * pageSize).
+		Limit(pageSize).
+		Where("status = 1")
+
+	if err := query.Find(&tasks).Error; err != nil {
+		return nil, err
+	}
+	
+	return tasks, nil
+}
