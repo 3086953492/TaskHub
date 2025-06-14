@@ -3,7 +3,7 @@ package services
 import (
 	"TaskHub/task_service/global"
 	"TaskHub/task_service/models"
-	"TaskHub/task_service/pkg/logger"
+	"TaskHub/task_service/utils/logger"
 	"TaskHub/task_service/repositories"
 	"errors"
 	"fmt"

@@ -3,7 +3,7 @@ package main
 import (
 	"TaskHub/user_service/global"
 	"TaskHub/user_service/initialize"
-	"TaskHub/user_service/pkg/logger"
+	"TaskHub/user_service/utils/logger"
 	"fmt"
 	"log"
 	"os"

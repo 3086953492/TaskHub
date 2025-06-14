@@ -3,7 +3,7 @@ package services
 import (
 	"TaskHub/user_service/global"
 	"TaskHub/user_service/models"
-	"TaskHub/user_service/pkg/logger"
+	"TaskHub/user_service/utils/logger"
 	"TaskHub/user_service/repositories"
 
 	"go.uber.org/zap"

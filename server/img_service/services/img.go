@@ -1,7 +1,7 @@
 package services
 
 import (
-	"TaskHub/img_service/pkg/logger"
+	"TaskHub/img_service/utils/logger"
 	"fmt"
 	"io"
 	"mime/multipart"

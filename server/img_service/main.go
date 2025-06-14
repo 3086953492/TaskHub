@@ -3,7 +3,7 @@ package main
 import (
 	"TaskHub/img_service/global"
 	"TaskHub/img_service/initialize"
-	"TaskHub/img_service/pkg/logger"
+	"TaskHub/img_service/utils/logger"
 	"fmt"
 	"log"
 	"os"
