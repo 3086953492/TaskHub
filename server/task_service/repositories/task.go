@@ -70,8 +70,8 @@ func GetTaskInfo(taskID uint) (*models.TaskInfo, error) {
 }
 
 // 获取任务图片列表
-func GetTaskImages(taskID uint) ([]string, error) {
-	var images []string
+func GetTaskImages(taskID uint) ([]models.TaskImageResponse, error) {
+	var images []models.TaskImageResponse
 	var taskImages []models.TaskImage
 	if err := global.DB.Where("task_id = ? AND deleted_at IS NULL", taskID).
 		Order("sort_order ASC").Find(&taskImages).Error; err != nil {
@@ -79,7 +79,10 @@ func GetTaskImages(taskID uint) ([]string, error) {
 	}
 
 	for _, img := range taskImages {
-		images = append(images, img.ImageURL)
+		images = append(images, models.TaskImageResponse{
+			ID:       img.ID,
+			ImageURL: img.ImageURL,
+		})
 	}
 	return images, nil
 }

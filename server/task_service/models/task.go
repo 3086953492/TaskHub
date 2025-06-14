@@ -93,19 +93,25 @@ type TaskListResponse struct {
 	DueDate   *time.Time `json:"due_date"`
 }
 
+// 任务图片响应结构
+type TaskImageResponse struct {
+	ID       uint   `json:"id"`
+	ImageURL string `json:"image_url"`
+}
+
 type TaskDetailResponse struct {
-	TaskID      uint       `json:"task_id"`
-	Status      int        `json:"status"`
-	AssigneeID  uint       `json:"assignee_id"` // 被分配人ID
-	CreatorID   uint       `json:"creator_id"`  // 创建人ID
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	Title       string     `json:"title"`
-	Description string     `json:"description"`
-	Priority    int        `json:"priority"`
-	DueDate     *time.Time `json:"due_date"`
-	CompletedAt *time.Time `json:"completed_at"`
-	Images      []string   `json:"images"`
+	TaskID      uint                `json:"task_id"`
+	Status      int                 `json:"status"`
+	AssigneeID  uint                `json:"assignee_id"` // 被分配人ID
+	CreatorID   uint                `json:"creator_id"`  // 创建人ID
+	CreatedAt   time.Time           `json:"created_at"`
+	UpdatedAt   time.Time           `json:"updated_at"`
+	Title       string              `json:"title"`
+	Description string              `json:"description"`
+	Priority    int                 `json:"priority"`
+	DueDate     *time.Time          `json:"due_date"`
+	CompletedAt *time.Time          `json:"completed_at"`
+	Images      []TaskImageResponse `json:"images"`
 }
 
 type TaskHistoryResponse struct {

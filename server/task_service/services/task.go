@@ -151,7 +151,7 @@ func GetTaskDetail(taskID, userID uint, role string) (*models.TaskDetailResponse
 	images, err := repositories.GetTaskImages(taskID)
 	if err != nil {
 		// 图片获取失败时，继续处理但记录空数组
-		images = []string{}
+		images = []models.TaskImageResponse{}
 	}
 
 	// 构建响应对象
