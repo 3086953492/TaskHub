@@ -84,18 +84,38 @@ func GetTaskImages(taskID uint) ([]string, error) {
 	return images, nil
 }
 
-func GetTaskList(page, pageSize int) ([]models.TaskListResponse, error) {
-	var tasks []models.TaskListResponse
+// 获取任务基本记录列表
+func GetTaskRecords(page, pageSize int, conditions map[string]interface{}) ([]models.Task, error) {
+	var tasks []models.Task
 	query := global.DB.Model(&models.Task{}).
-		Joins("LEFT JOIN task_info ON tasks.id = task_info.task_id").
-		Select("tasks.id as task_id, tasks.status, tasks.created_at, task_info.title, task_info.priority, task_info.due_date").
 		Offset((page - 1) * pageSize).
-		Limit(pageSize)
+		Limit(pageSize).
+		Order("created_at DESC")
+
+	// 应用条件过滤
+	for key, value := range conditions {
+		query = query.Where(key, value)
+	}
 
 	if err := query.Find(&tasks).Error; err != nil {
 		return nil, err
 	}
 	return tasks, nil
+}
+
+// 批量获取任务信息
+func GetTaskInfoBatch(taskIDs []uint) (map[uint]*models.TaskInfo, error) {
+	var taskInfos []models.TaskInfo
+	if err := global.DB.Where("task_id IN ?", taskIDs).Find(&taskInfos).Error; err != nil {
+		return nil, err
+	}
+
+	// 转换为map便于查找
+	infoMap := make(map[uint]*models.TaskInfo)
+	for i := range taskInfos {
+		infoMap[taskInfos[i].TaskID] = &taskInfos[i]
+	}
+	return infoMap, nil
 }
 
 func GetTaskAssigneeID(taskID uint) (uint, error) {
@@ -123,24 +143,6 @@ func AssignTask(taskID, userID uint) error {
 		return err
 	}
 	return nil
-}
-
-func GetUnassignedTasks(page, pageSize int) ([]models.TaskListResponse, error) {
-
-	var tasks []models.TaskListResponse
-
-	query := global.DB.Model(&models.Task{}).
-		Joins("LEFT JOIN task_info ON tasks.id = task_info.task_id").
-		Select("tasks.id as task_id, tasks.status, tasks.created_at, task_info.title, task_info.priority, task_info.due_date").
-		Offset((page - 1) * pageSize).
-		Limit(pageSize).
-		Where("status = 1")
-
-	if err := query.Find(&tasks).Error; err != nil {
-		return nil, err
-	}
-
-	return tasks, nil
 }
 
 // 获取任务历史记录基本信息
