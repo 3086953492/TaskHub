@@ -51,16 +51,37 @@ func CreateTaskImages(tx *gorm.DB, taskID uint, images []string) error {
 	return nil
 }
 
-func GetTaskDetail(id uint) (*models.TaskDetailResponse, error) {
-	var task models.TaskDetailResponse
-	if err := global.DB.Model(&models.Task{}).
-		Joins("LEFT JOIN task_info ON tasks.id = task_info.task_id").
-		Joins("LEFT JOIN task_images ON tasks.id = task_images.task_id").
-		Select("tasks.id as task_id, tasks.status, tasks.created_at, tasks.updated_at, task_info.title, task_info.description, task_info.priority, task_info.due_date, task_info.completed_at, task_images.image_url").
-		First(&task, id).Error; err != nil {
+// 获取任务基本信息
+func GetTaskRecord(taskID uint) (*models.Task, error) {
+	var task models.Task
+	if err := global.DB.Where("id = ?", taskID).First(&task).Error; err != nil {
 		return nil, err
 	}
 	return &task, nil
+}
+
+// 获取任务详细信息
+func GetTaskInfo(taskID uint) (*models.TaskInfo, error) {
+	var taskInfo models.TaskInfo
+	if err := global.DB.Where("task_id = ?", taskID).First(&taskInfo).Error; err != nil {
+		return nil, err
+	}
+	return &taskInfo, nil
+}
+
+// 获取任务图片列表
+func GetTaskImages(taskID uint) ([]string, error) {
+	var images []string
+	var taskImages []models.TaskImage
+	if err := global.DB.Where("task_id = ? AND deleted_at IS NULL", taskID).
+		Order("sort_order ASC").Find(&taskImages).Error; err != nil {
+		return nil, err
+	}
+
+	for _, img := range taskImages {
+		images = append(images, img.ImageURL)
+	}
+	return images, nil
 }
 
 func GetTaskList(page, pageSize int) ([]models.TaskListResponse, error) {

@@ -92,7 +92,43 @@ func GetTaskDetail(taskID, userID uint, role string) (*models.TaskDetailResponse
 			return nil, errors.New("无权限查看任务详情")
 		}
 	}
-	return repositories.GetTaskDetail(taskID)
+
+	// 获取任务基本信息
+	taskRecord, err := repositories.GetTaskRecord(taskID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取任务详细信息
+	taskInfo, err := repositories.GetTaskInfo(taskID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取任务图片
+	images, err := repositories.GetTaskImages(taskID)
+	if err != nil {
+		// 图片获取失败时，继续处理但记录空数组
+		images = []string{}
+	}
+
+	// 构建响应对象
+	response := &models.TaskDetailResponse{
+		TaskID:      taskRecord.ID,
+		Status:      taskRecord.Status,
+		AssigneeID:  taskRecord.AssigneeID,
+		CreatorID:   taskRecord.CreatorID,
+		CreatedAt:   taskRecord.CreatedAt,
+		UpdatedAt:   taskRecord.UpdatedAt,
+		Title:       taskInfo.Title,
+		Description: taskInfo.Description,
+		Priority:    taskInfo.Priority,
+		DueDate:     taskInfo.DueDate,
+		CompletedAt: taskInfo.CompletedAt,
+		Images:      images,
+	}
+
+	return response, nil
 }
 
 func GetUnassignedTasks(page, pageSize uint) ([]models.TaskListResponse, error) {
