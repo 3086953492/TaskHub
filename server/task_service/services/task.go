@@ -7,6 +7,8 @@ import (
 	"TaskHub/task_service/utils/logger"
 	"errors"
 	"fmt"
+	"strconv"
+	"time"
 )
 
 func CreateTask(task *models.CreateTaskRequest, creatorID uint) error {
@@ -69,7 +71,44 @@ func AssignTask(taskID, userID uint) error {
 		return errors.New("任务已分配")
 	}
 
-	if err := repositories.AssignTask(taskID, userID); err != nil {
+	// 开启事务
+	tx := global.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 更新任务分配人
+	if err := tx.Model(&models.Task{}).Where("id = ?", taskID).Update("assignee_id", userID).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 更新任务状态为已分配(2)
+	if err := tx.Model(&models.Task{}).Where("id = ?", taskID).Update("status", 2).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 创建历史记录
+	if err := tx.Create(&models.TaskHistory{
+		TaskID:     taskID,
+		Action:     "分配",
+		FieldName:  "assignee_id",
+		NewValue:   strconv.Itoa(int(userID)),
+		OperatorID: userID,
+		CreatedAt:  time.Now(),
+	}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
 		return err
 	}
 

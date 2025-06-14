@@ -3,7 +3,6 @@ package repositories
 import (
 	"TaskHub/task_service/global"
 	"TaskHub/task_service/models"
-	"strconv"
 	"time"
 
 	"gorm.io/gorm"
@@ -129,18 +128,30 @@ func GetTaskAssigneeID(taskID uint) (uint, error) {
 	return task.AssigneeID, nil
 }
 
-func AssignTask(taskID, userID uint) error {
-
-	if err := global.DB.Model(&models.Task{}).Where("id = ?", taskID).Update("assignee_id", userID).Update("status", 2).Error; err != nil {
+// 更新任务分配人
+func UpdateTaskAssignee(taskID, assigneeID uint) error {
+	if err := global.DB.Model(&models.Task{}).Where("id = ?", taskID).Update("assignee_id", assigneeID).Error; err != nil {
 		return err
 	}
+	return nil
+}
 
+// 更新任务状态
+func UpdateTaskStatus(taskID uint, status int) error {
+	if err := global.DB.Model(&models.Task{}).Where("id = ?", taskID).Update("status", status).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// 创建任务历史记录
+func CreateTaskHistory(taskID uint, action, fieldName, newValue string, operatorID uint) error {
 	if err := global.DB.Create(&models.TaskHistory{
 		TaskID:     taskID,
-		Action:     "分配",
-		FieldName:  "assignee_id",
-		NewValue:   strconv.Itoa(int(userID)),
-		OperatorID: userID,
+		Action:     action,
+		FieldName:  fieldName,
+		NewValue:   newValue,
+		OperatorID: operatorID,
 		CreatedAt:  time.Now(),
 	}).Error; err != nil {
 		return err
