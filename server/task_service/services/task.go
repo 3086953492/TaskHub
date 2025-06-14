@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"time"
 )
 
 func CreateTask(task *models.CreateTaskRequest, creatorID uint) error {
@@ -83,26 +82,19 @@ func AssignTask(taskID, userID uint) error {
 	}()
 
 	// 更新任务分配人
-	if err := tx.Model(&models.Task{}).Where("id = ?", taskID).Update("assignee_id", userID).Error; err != nil {
+	if err := repositories.UpdateTaskAssignee(tx, taskID, userID); err != nil {
 		tx.Rollback()
 		return err
 	}
 
 	// 更新任务状态为已分配(2)
-	if err := tx.Model(&models.Task{}).Where("id = ?", taskID).Update("status", 2).Error; err != nil {
+	if err := repositories.UpdateTaskStatus(tx, taskID, 2); err != nil {
 		tx.Rollback()
 		return err
 	}
 
 	// 创建历史记录
-	if err := tx.Create(&models.TaskHistory{
-		TaskID:     taskID,
-		Action:     "分配",
-		FieldName:  "assignee_id",
-		NewValue:   strconv.Itoa(int(userID)),
-		OperatorID: userID,
-		CreatedAt:  time.Now(),
-	}).Error; err != nil {
+	if err := repositories.CreateTaskHistory(tx, taskID, "分配", "assignee_id", strconv.Itoa(int(userID)), userID); err != nil {
 		tx.Rollback()
 		return err
 	}

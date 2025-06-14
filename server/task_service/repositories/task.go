@@ -129,24 +129,36 @@ func GetTaskAssigneeID(taskID uint) (uint, error) {
 }
 
 // 更新任务分配人
-func UpdateTaskAssignee(taskID, assigneeID uint) error {
-	if err := global.DB.Model(&models.Task{}).Where("id = ?", taskID).Update("assignee_id", assigneeID).Error; err != nil {
+func UpdateTaskAssignee(tx *gorm.DB, taskID, assigneeID uint) error {
+	db := tx
+	if db == nil {
+		db = global.DB
+	}
+	if err := db.Model(&models.Task{}).Where("id = ?", taskID).Update("assignee_id", assigneeID).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 // 更新任务状态
-func UpdateTaskStatus(taskID uint, status int) error {
-	if err := global.DB.Model(&models.Task{}).Where("id = ?", taskID).Update("status", status).Error; err != nil {
+func UpdateTaskStatus(tx *gorm.DB, taskID uint, status int) error {
+	db := tx
+	if db == nil {
+		db = global.DB
+	}
+	if err := db.Model(&models.Task{}).Where("id = ?", taskID).Update("status", status).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 // 创建任务历史记录
-func CreateTaskHistory(taskID uint, action, fieldName, newValue string, operatorID uint) error {
-	if err := global.DB.Create(&models.TaskHistory{
+func CreateTaskHistory(tx *gorm.DB, taskID uint, action, fieldName, newValue string, operatorID uint) error {
+	db := tx
+	if db == nil {
+		db = global.DB
+	}
+	if err := db.Create(&models.TaskHistory{
 		TaskID:     taskID,
 		Action:     action,
 		FieldName:  fieldName,
