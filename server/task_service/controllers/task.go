@@ -104,15 +104,18 @@ func ListUnassigned(c *gin.Context) {
 
 	if _, err := fmt.Sscanf(pageStr, "%d", &page); err != nil {
 		c.JSON(400, gin.H{"error": "无效的页码"})
+		return
 	}
 
 	if _, err := fmt.Sscanf(pageSizeStr, "%d", &pageSize); err != nil {
 		c.JSON(400, gin.H{"error": "无效的页大小"})
+		return
 	}
 
 	tasks, err := services.GetUnassignedTasks(page, pageSize)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(200, tasks)
@@ -125,6 +128,7 @@ func HistoryHandler(c *gin.Context) {
 
 	if _, err := fmt.Sscanf(taskIDStr, "%d", &taskID); err != nil {
 		c.JSON(400, gin.H{"error": "无效的任务ID"})
+		return
 	}
 
 	userID := c.GetUint("user_id")
@@ -132,6 +136,7 @@ func HistoryHandler(c *gin.Context) {
 	history, err := services.GetTaskHistory(taskID, userID, role)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 
 	c.JSON(200, history)
