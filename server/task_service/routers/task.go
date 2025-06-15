@@ -13,6 +13,6 @@ func LoadTaskRouters(r *gin.Engine) {
 	task.PATCH("", middleware.AuthMiddleware(), controllers.AssignHandler)
 	task.GET("", middleware.AuthMiddleware(), middleware.AdminAuthMiddleware(), controllers.ListHandler)
 	task.GET("/:id", middleware.AuthMiddleware(), controllers.DetailHandler)
-	task.GET("/unassignedlist", middleware.AuthMiddleware(), controllers.ListUnassigned)
-	task.GET("/history", middleware.AuthMiddleware(), controllers.HistoryHandler)
+	task.GET("/unassigned", middleware.AuthMiddleware(), controllers.ListUnassigned)
+	task.GET("/history/:id", middleware.AuthMiddleware(), controllers.HistoryHandler)
 }

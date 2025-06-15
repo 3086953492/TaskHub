@@ -122,7 +122,7 @@ func ListUnassigned(c *gin.Context) {
 }
 
 func HistoryHandler(c *gin.Context) {
-	taskIDStr := c.Query("id")
+	taskIDStr := c.Param("id")
 
 	var taskID uint
 
