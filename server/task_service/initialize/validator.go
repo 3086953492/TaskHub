@@ -10,7 +10,7 @@ func InitValidator() error {
 
 	global.Validate = validator.New()
 
-	if err := global.Validate.RegisterValidation("imagesURL", validator_pkg.ValidateImagesURL); err != nil {
+	if err := global.Validate.RegisterValidation("imageURL", validator_pkg.ValidateImageURL); err != nil {
 		return err
 	}
 

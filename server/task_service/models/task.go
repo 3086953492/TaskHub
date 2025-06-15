@@ -78,7 +78,11 @@ type CreateTaskRequest struct {
 	Description string     `json:"description"`
 	Priority    int        `json:"priority" binding:"required,oneof=1 2 3"`
 	DueDate     *time.Time `json:"due_date"`
-	Images      []string   `json:"images" validate:"imagesURL"`
+	Images      []NewImage `json:"images"`
+}
+
+type NewImage struct {
+	URL string `json:"url" validate:"imageURL"`
 }
 
 type TaskListResponse struct {
@@ -92,8 +96,8 @@ type TaskListResponse struct {
 
 // 任务图片响应结构
 type TaskImageResponse struct {
-	ID       uint   `json:"id"`
-	ImageURL string `json:"image_url"`
+	ID  uint   `json:"id"`
+	URL string `json:"url"`
 }
 
 type TaskDetailResponse struct {
@@ -128,9 +132,9 @@ type UpdateTaskRequest struct {
 	UpdateTaskInfo UpdateTaskInfo    `json:"update_task_info"`
 	UpdateImages   []UpdateTaskImage `json:"update_images"`
 	DeleteImages   []DeleteTaskImage `json:"delete_images"`
-	NewImages      []NewTaskImage    `json:"new_images"`
+	AddImages      []AddTaskImage    `json:"add_images"`
 	Remark         string            `json:"remark"`
-	RemarkImages   []string          `json:"remark_images"` // 备注图片，插入历史记录图片表
+	RemarkImages   []NewImage        `json:"remark_images"` // 备注图片，插入历史记录图片表
 }
 
 type UpdateTaskInfo struct {
@@ -141,22 +145,22 @@ type UpdateTaskInfo struct {
 }
 
 type UpdateTaskImage struct { // 在更新任务信息时使用这个结构体，支持更新图片和排序
-	ImageID   uint   `json:"image_id"`
-	ImageURL  string `json:"image_url"`
+	ID        uint   `json:"id"`
+	URL       string `json:"url" validate:"imageURL"`
 	SortOrder int    `json:"sort_order"`
 }
 
 type DeleteTaskImage struct { // 在更新任务信息时使用这个结构体，支持删除图片
-	ImageID uint `json:"image_id"`
+	ID uint `json:"id"`
 }
 
-type NewTaskImage struct { // 在更新任务信息时使用这个结构体，支持新增图片
-	ImageURL  string `json:"image_url"`
+type AddTaskImage struct { // 在更新任务信息时使用这个结构体，支持新增图片
+	URL       string `json:"url" validate:"imageURL"`
 	SortOrder int    `json:"sort_order"`
 }
 
 type UpdateTaskStatusRequest struct {
-	Status       int      `json:"status" binding:"oneof=2 3 4"`
-	Remark       string   `json:"remark"`
-	RemarkImages []string `json:"remark_images"`
+	Status       int        `json:"status" binding:"oneof=2 3 4"`
+	Remark       string     `json:"remark"`
+	RemarkImages []NewImage `json:"remark_images"`
 }

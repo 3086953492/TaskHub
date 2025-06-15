@@ -282,7 +282,7 @@ func UpdateTask(taskID, userID uint, role string, updateTaskRequest *models.Upda
 
 	// 更新现有图片
 	for _, updateImage := range updateTaskRequest.UpdateImages {
-		if err := repositories.UpdateTaskImage(tx, updateImage.ImageID, &updateImage); err != nil {
+		if err := repositories.UpdateTaskImage(tx, updateImage.ID, &updateImage); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -290,15 +290,15 @@ func UpdateTask(taskID, userID uint, role string, updateTaskRequest *models.Upda
 
 	// 删除图片
 	for _, deleteImage := range updateTaskRequest.DeleteImages {
-		if err := repositories.DeleteTaskImage(tx, deleteImage.ImageID); err != nil {
+		if err := repositories.DeleteTaskImage(tx, deleteImage.ID); err != nil {
 			tx.Rollback()
 			return err
 		}
 	}
 
-	// 新增图片
-	for _, newImage := range updateTaskRequest.NewImages {
-		if err := repositories.CreateTaskImage(tx, taskID, &newImage); err != nil {
+	// 追加图片
+	for _, addImage := range updateTaskRequest.AddImages {
+		if err := repositories.CreateTaskImage(tx, taskID, &addImage); err != nil {
 			tx.Rollback()
 			return err
 		}

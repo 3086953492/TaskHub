@@ -36,11 +36,11 @@ func CreateTaskInfo(tx *gorm.DB, taskID uint, req *models.CreateTaskRequest) err
 }
 
 // 创建任务图片记录
-func CreateTaskImages(tx *gorm.DB, taskID uint, images []string) error {
-	for i, imageURL := range images {
+func CreateTaskImages(tx *gorm.DB, taskID uint, images []models.NewImage) error {
+	for i, image := range images {
 		taskImageModel := &models.TaskImage{
 			TaskID:    taskID,
-			ImageURL:  imageURL,
+			ImageURL:  image.URL,
 			SortOrder: i,
 		}
 		if err := tx.Create(taskImageModel).Error; err != nil {
@@ -79,8 +79,8 @@ func GetTaskImages(taskID uint) ([]models.TaskImageResponse, error) {
 
 	for _, img := range taskImages {
 		images = append(images, models.TaskImageResponse{
-			ID:       img.ID,
-			ImageURL: img.ImageURL,
+			ID:  img.ID,
+			URL: img.ImageURL,
 		})
 	}
 	return images, nil
@@ -222,8 +222,8 @@ func UpdateTaskImage(tx *gorm.DB, imageID uint, updateImageInfo *models.UpdateTa
 	}
 
 	updates := map[string]interface{}{}
-	if updateImageInfo.ImageURL != "" {
-		updates["image_url"] = updateImageInfo.ImageURL
+	if updateImageInfo.URL != "" {
+		updates["image_url"] = updateImageInfo.URL
 	}
 	if updateImageInfo.SortOrder != 0 {
 		updates["sort_order"] = updateImageInfo.SortOrder
@@ -250,8 +250,8 @@ func DeleteTaskImage(tx *gorm.DB, imageID uint) error {
 	return nil
 }
 
-// 新增任务图片
-func CreateTaskImage(tx *gorm.DB, taskID uint, imageInfo *models.NewTaskImage) error {
+// 追加任务图片
+func CreateTaskImage(tx *gorm.DB, taskID uint, imageInfo *models.AddTaskImage) error {
 	db := tx
 	if db == nil {
 		db = global.DB
@@ -259,7 +259,7 @@ func CreateTaskImage(tx *gorm.DB, taskID uint, imageInfo *models.NewTaskImage) e
 
 	taskImage := &models.TaskImage{
 		TaskID:    taskID,
-		ImageURL:  imageInfo.ImageURL,
+		ImageURL:  imageInfo.URL,
 		SortOrder: imageInfo.SortOrder,
 	}
 
@@ -270,16 +270,16 @@ func CreateTaskImage(tx *gorm.DB, taskID uint, imageInfo *models.NewTaskImage) e
 }
 
 // 创建历史记录图片
-func CreateTaskHistoryImages(tx *gorm.DB, historyID uint, images []string) error {
+func CreateTaskHistoryImages(tx *gorm.DB, historyID uint, images []models.NewImage) error {
 	db := tx
 	if db == nil {
 		db = global.DB
 	}
 
-	for i, imageURL := range images {
+	for i, image := range images {
 		historyImage := &models.TaskHistoryImage{
 			HistoryID: historyID,
-			ImageURL:  imageURL,
+			ImageURL:  image.URL,
 			SortOrder: i,
 		}
 		if err := db.Create(historyImage).Error; err != nil {
