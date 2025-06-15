@@ -35,6 +35,12 @@ func main() {
 		return
 	}
 
+	// 初始化 Redis
+	if err := initialize.InitRedis(); err != nil {
+		logger.Error("初始化 Redis 失败", zap.Error(err))
+		return
+	}
+
 	// 获取端口号，优先使用命令行参数
 	port := global.Cfg.Server.Port
 	if len(os.Args) > 1 {

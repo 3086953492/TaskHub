@@ -3,8 +3,12 @@ package services
 import (
 	"TaskHub/user_service/global"
 	"TaskHub/user_service/models"
-	"TaskHub/user_service/utils/logger"
 	"TaskHub/user_service/repositories"
+	"TaskHub/user_service/utils/logger"
+	"TaskHub/user_service/utils/redis"
+	"errors"
+	"fmt"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -28,6 +32,15 @@ func LoginService(req *models.LoginRequest) (string, error) {
 }
 
 func RegisterService(req *models.RegisterRequest) (*models.User, error) {
+
+	// 对用户名和邮箱加锁
+	lockKey := fmt.Sprintf("user:register:%s:%s", req.Username, req.Email)
+	lock := redis.NewDistributedLock(lockKey, 10*time.Second)
+
+	if err := lock.Acquire(); err != nil {
+		return nil, errors.New("注册请求处理中，请稍后重试")
+	}
+	defer lock.Release()
 
 	if err := global.Validate.Struct(req); err != nil {
 		return nil, err
