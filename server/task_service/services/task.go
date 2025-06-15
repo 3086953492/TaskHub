@@ -5,9 +5,11 @@ import (
 	"TaskHub/task_service/models"
 	"TaskHub/task_service/repositories"
 	"TaskHub/task_service/utils/logger"
+	"TaskHub/task_service/utils/redis"
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 )
 
 func CreateTask(task *models.CreateTaskRequest, creatorID uint) error {
@@ -58,6 +60,15 @@ func CreateTask(task *models.CreateTaskRequest, creatorID uint) error {
 }
 
 func AssignTask(taskID, userID uint) error {
+
+	// 获取分布式锁
+	lockKey := fmt.Sprintf("task:assign:%d", taskID)
+	lock := redis.NewDistributedLock(lockKey, 30*time.Second)
+
+	if err := lock.Acquire(); err != nil {
+		return errors.New("任务正在被其他用户处理中")
+	}
+	defer lock.Release()
 
 	// 确保任务未分配
 	assignee_id, err := repositories.GetTaskAssigneeID(taskID)

@@ -3,6 +3,7 @@ package global
 import (
 	"TaskHub/task_service/configs"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -13,4 +14,5 @@ var (
 	DB       *gorm.DB
 	Validate *validator.Validate
 	Logger   *zap.Logger
+	Redis    *redis.Client
 )
