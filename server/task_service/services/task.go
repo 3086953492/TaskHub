@@ -391,3 +391,51 @@ func CheckTaskUpdatePermission(taskID, userID uint, role string) bool {
 	}
 	return true
 }
+
+func UpdateTaskStatus(taskID, userID uint, role string, updateTaskRequest *models.UpdateTaskStatusRequest) error {
+	if !CheckTaskStatusUpdatePermission(taskID, userID, role) {
+		return errors.New("无权限更新任务状态")
+	}
+
+	tx := global.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if err := repositories.UpdateTaskStatus(tx, taskID, updateTaskRequest.Status); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	history, err := repositories.CreateTaskHistory(tx, taskID, "更新任务状态", updateTaskRequest.Remark, userID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if len(updateTaskRequest.RemarkImages) > 0 {
+		if err := repositories.CreateTaskHistoryImages(tx, history.ID, updateTaskRequest.RemarkImages); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
+}
+
+func CheckTaskStatusUpdatePermission(taskID, userID uint, role string) bool {
+
+	if role != "admin" {
+		taskAssigneeID, _ := repositories.GetTaskAssigneeID(taskID)
+		taskCreatorID, _ := repositories.GetTaskCreatorID(taskID)
+		if taskAssigneeID != userID && taskCreatorID != userID {
+			return false
+		}
+	}
+	return true
+}

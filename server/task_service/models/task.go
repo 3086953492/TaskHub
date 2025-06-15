@@ -125,7 +125,7 @@ type TaskHistoryResponse struct {
 
 type UpdateTaskRequest struct {
 	Status         int               `json:"status" binding:"oneof=1 4"`
-	UpdateTaskInfo UpdateTaskInfo  `json:"update_task_info"`
+	UpdateTaskInfo UpdateTaskInfo    `json:"update_task_info"`
 	UpdateImages   []UpdateTaskImage `json:"update_images"`
 	DeleteImages   []DeleteTaskImage `json:"delete_images"`
 	NewImages      []NewTaskImage    `json:"new_images"`
@@ -153,4 +153,10 @@ type DeleteTaskImage struct { // 在更新任务信息时使用这个结构体�
 type NewTaskImage struct { // 在更新任务信息时使用这个结构体，支持新增图片
 	ImageURL  string `json:"image_url"`
 	SortOrder int    `json:"sort_order"`
+}
+
+type UpdateTaskStatusRequest struct {
+	Status       int      `json:"status" binding:"oneof=2 3 4"`
+	Remark       string   `json:"remark"`
+	RemarkImages []string `json:"remark_images"`
 }

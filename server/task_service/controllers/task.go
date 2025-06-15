@@ -167,3 +167,28 @@ func UpdateHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "任务更新成功"})
 }
+
+func UpdateStatusHandler(c *gin.Context) {
+	taskIDStr := c.Param("id")
+	var taskID uint
+	if _, err := fmt.Sscanf(taskIDStr, "%d", &taskID); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的任务ID"})
+		return
+	}
+
+	userID := c.GetUint("user_id")
+	role := c.GetString("role")
+
+	updateTaskStatusRequest := &models.UpdateTaskStatusRequest{}
+	if err := c.ShouldBindJSON(updateTaskStatusRequest); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误: " + err.Error()})
+		return
+	}
+
+	if err := services.UpdateTaskStatus(taskID, userID, role, updateTaskStatusRequest); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "任务状态更新成功"})
+}
