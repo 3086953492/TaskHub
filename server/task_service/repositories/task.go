@@ -194,3 +194,11 @@ func GetTaskHistoryImages(historyID uint) ([]string, error) {
 	}
 	return images, nil
 }
+
+func GetTaskCreatorID(taskID uint) (uint, error) {
+	var task models.Task
+	if err := global.DB.Model(&models.Task{}).Where("id = ?", taskID).Select("creator_id").First(&task).Error; err != nil {
+		return 0, err
+	}
+	return task.CreatorID, nil
+}

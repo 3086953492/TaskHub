@@ -156,14 +156,9 @@ func GetTaskList(page, pageSize uint) ([]models.TaskListResponse, error) {
 }
 
 func GetTaskDetail(taskID, userID uint, role string) (*models.TaskDetailResponse, error) {
-	if role != "admin" {
-		taskAssigneeID, err := repositories.GetTaskAssigneeID(taskID)
-		if err != nil {
-			return nil, err
-		}
-		if taskAssigneeID != userID {
-			return nil, errors.New("无权限查看任务详情")
-		}
+	
+	if !CheckTaskViewPermission(taskID, userID, role) {
+		return nil, errors.New("无权限查看任务详情")
 	}
 
 	// 获取任务基本信息
@@ -256,14 +251,9 @@ func GetUnassignedTasks(page, pageSize uint) ([]models.TaskListResponse, error) 
 }
 
 func GetTaskHistory(taskID, userID uint, role string) ([]models.TaskHistoryResponse, error) {
-	if role != "admin" {
-		taskAssigneeID, err := repositories.GetTaskAssigneeID(taskID)
-		if err != nil {
-			return nil, err
-		}
-		if taskAssigneeID != userID {
-			return nil, errors.New("无权限查看任务详情")
-		}
+
+	if !CheckTaskViewPermission(taskID, userID, role) {
+		return nil, errors.New("无权限查看任务历史记录")
 	}
 
 	// 获取历史记录基本信息
@@ -297,4 +287,23 @@ func GetTaskHistory(taskID, userID uint, role string) ([]models.TaskHistoryRespo
 	}
 
 	return result, nil
+}
+
+func CheckTaskViewPermission(taskID, userID uint, role string) bool {
+	
+	if role != "admin" {
+		taskAssigneeID, err := repositories.GetTaskAssigneeID(taskID)
+		if err != nil {
+			return false
+		}
+		taskCreatorID, err := repositories.GetTaskCreatorID(taskID)
+		if err != nil {
+			return false
+		}
+		if taskAssigneeID != userID && taskCreatorID != userID && taskAssigneeID != 0 {	// 如果任务已分配，则只有创建者和分配者可以查看
+			return false
+		}
+	}
+
+	return true
 }
