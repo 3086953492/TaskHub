@@ -305,3 +305,89 @@ func CheckTaskViewPermission(taskID, userID uint, role string) bool {
 
 	return true
 }
+
+func UpdateTask(taskID, userID uint, role string, updateTaskRequest *models.UpdateTaskRequest) error {
+	if !CheckTaskUpdatePermission(taskID, userID, role) {
+		return errors.New("无权限更新任务")
+	}
+
+	// 开启事务
+	tx := global.DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	// 更新任务状态
+	if updateTaskRequest.Status != 0 {
+		if err := repositories.UpdateTaskStatus(tx, taskID, updateTaskRequest.Status); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// 更新任务信息
+	if err := repositories.UpdateTaskInfo(tx, taskID, &updateTaskRequest.UpdateTaskInfo); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 更新现有图片
+	for _, updateImage := range updateTaskRequest.UpdateImages {
+		if err := repositories.UpdateTaskImage(tx, updateImage.ImageID, &updateImage); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// 删除图片
+	for _, deleteImage := range updateTaskRequest.DeleteImages {
+		if err := repositories.DeleteTaskImage(tx, deleteImage.ImageID); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// 新增图片
+	for _, newImage := range updateTaskRequest.NewImages {
+		if err := repositories.CreateTaskImage(tx, taskID, &newImage); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	history, err := repositories.CreateTaskHistory(tx, taskID, "更新任务信息", updateTaskRequest.Remark, userID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// 如果有备注图片，插入历史记录图片
+	if len(updateTaskRequest.RemarkImages) > 0 {
+		if err := repositories.CreateTaskHistoryImages(tx, history.ID, updateTaskRequest.RemarkImages); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
+}
+
+func CheckTaskUpdatePermission(taskID, userID uint, role string) bool {
+
+	if role != "admin" {
+		taskCreatorID, err := repositories.GetTaskCreatorID(taskID)
+		if err != nil {
+			return false
+		}
+		if taskCreatorID != userID {
+			return false
+		}
+	}
+	return true
+}

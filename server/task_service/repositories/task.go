@@ -202,3 +202,89 @@ func GetTaskCreatorID(taskID uint) (uint, error) {
 	}
 	return task.CreatorID, nil
 }
+
+func UpdateTaskInfo(tx *gorm.DB, taskID uint, updateTaskInfo *models.UpdateTaskInfo) error {
+	db := tx
+	if db == nil {
+		db = global.DB
+	}
+	if err := db.Model(&models.TaskInfo{}).Where("task_id = ?", taskID).Updates(updateTaskInfo).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// 更新任务图片
+func UpdateTaskImage(tx *gorm.DB, imageID uint, updateImageInfo *models.UpdateTaskImage) error {
+	db := tx
+	if db == nil {
+		db = global.DB
+	}
+
+	updates := map[string]interface{}{}
+	if updateImageInfo.ImageURL != "" {
+		updates["image_url"] = updateImageInfo.ImageURL
+	}
+	if updateImageInfo.SortOrder != 0 {
+		updates["sort_order"] = updateImageInfo.SortOrder
+	}
+
+	if len(updates) > 0 {
+		if err := db.Model(&models.TaskImage{}).Where("id = ?", imageID).Updates(updates).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// 删除任务图片（软删除）
+func DeleteTaskImage(tx *gorm.DB, imageID uint) error {
+	db := tx
+	if db == nil {
+		db = global.DB
+	}
+
+	if err := db.Model(&models.TaskImage{}).Where("id = ?", imageID).Update("deleted_at", time.Now()).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// 新增任务图片
+func CreateTaskImage(tx *gorm.DB, taskID uint, imageInfo *models.NewTaskImage) error {
+	db := tx
+	if db == nil {
+		db = global.DB
+	}
+
+	taskImage := &models.TaskImage{
+		TaskID:    taskID,
+		ImageURL:  imageInfo.ImageURL,
+		SortOrder: imageInfo.SortOrder,
+	}
+
+	if err := db.Create(taskImage).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// 创建历史记录图片
+func CreateTaskHistoryImages(tx *gorm.DB, historyID uint, images []string) error {
+	db := tx
+	if db == nil {
+		db = global.DB
+	}
+
+	for i, imageURL := range images {
+		historyImage := &models.TaskHistoryImage{
+			HistoryID: historyID,
+			ImageURL:  imageURL,
+			SortOrder: i,
+		}
+		if err := db.Create(historyImage).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}

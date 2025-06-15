@@ -122,3 +122,35 @@ type TaskHistoryResponse struct {
 	CreatedAt  time.Time `json:"created_at"`
 	Images     []string  `json:"images"`
 }
+
+type UpdateTaskRequest struct {
+	Status         int               `json:"status" binding:"oneof=1 4"`
+	UpdateTaskInfo UpdateTaskInfo  `json:"update_task_info"`
+	UpdateImages   []UpdateTaskImage `json:"update_images"`
+	DeleteImages   []DeleteTaskImage `json:"delete_images"`
+	NewImages      []NewTaskImage    `json:"new_images"`
+	Remark         string            `json:"remark"`
+	RemarkImages   []string          `json:"remark_images"` // 备注图片，插入历史记录图片表
+}
+
+type UpdateTaskInfo struct {
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	Priority    int        `json:"priority" binding:"oneof=1 2 3"`
+	DueDate     *time.Time `json:"due_date"`
+}
+
+type UpdateTaskImage struct { // 在更新任务信息时使用这个结构体，支持更新图片和排序
+	ImageID   uint   `json:"image_id"`
+	ImageURL  string `json:"image_url"`
+	SortOrder int    `json:"sort_order"`
+}
+
+type DeleteTaskImage struct { // 在更新任务信息时使用这个结构体，支持删除图片
+	ImageID uint `json:"image_id"`
+}
+
+type NewTaskImage struct { // 在更新任务信息时使用这个结构体，支持新增图片
+	ImageURL  string `json:"image_url"`
+	SortOrder int    `json:"sort_order"`
+}

@@ -15,4 +15,5 @@ func LoadTaskRouters(r *gin.Engine) {
 	task.GET("/:id", middleware.AuthMiddleware(), controllers.DetailHandler)
 	task.GET("/unassigned", middleware.AuthMiddleware(), controllers.ListUnassigned)
 	task.GET("/history/:id", middleware.AuthMiddleware(), controllers.HistoryHandler)
+	task.PATCH("/:id", middleware.AuthMiddleware(), controllers.UpdateHandler)
 }
