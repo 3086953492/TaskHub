@@ -110,9 +110,9 @@ func AssignTask(taskID, userID uint) error {
 	return nil
 }
 
-func GetTaskList(page, pageSize uint) ([]models.TaskListResponse, error) {
+func GetTaskList(page, pageSize uint, conditions map[string]interface{}) ([]models.TaskListResponse, error) {
 	// 获取任务基本记录
-	tasks, err := repositories.GetTaskRecords(int(page), int(pageSize), nil)
+	tasks, err := repositories.GetTaskRecords(int(page), int(pageSize), conditions)
 	if err != nil {
 		return nil, err
 	}
@@ -198,57 +198,6 @@ func GetTaskDetail(taskID, userID uint, role string) (*models.TaskDetailResponse
 	}
 
 	return response, nil
-}
-
-func GetUnassignedTasks(page, pageSize uint) ([]models.TaskListResponse, error) {
-	// 设置条件：只获取状态为1（待处理）的任务
-	conditions := map[string]interface{}{
-		"status": 1,
-	}
-
-	// 获取未分配的任务基本记录
-	tasks, err := repositories.GetTaskRecords(int(page), int(pageSize), conditions)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(tasks) == 0 {
-		return []models.TaskListResponse{}, nil
-	}
-
-	// 提取任务ID列表
-	taskIDs := make([]uint, len(tasks))
-	for i, task := range tasks {
-		taskIDs[i] = task.ID
-	}
-
-	// 批量获取任务信息
-	taskInfoMap, err := repositories.GetTaskInfoBatch(taskIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	// 组装响应数据
-	var result []models.TaskListResponse
-	for _, task := range tasks {
-		taskInfo := taskInfoMap[task.ID]
-		if taskInfo == nil {
-			// 如果没有找到对应的TaskInfo，跳过或使用默认值
-			continue
-		}
-
-		response := models.TaskListResponse{
-			TaskID:    task.ID,
-			Status:    task.Status,
-			CreatedAt: task.CreatedAt,
-			Title:     taskInfo.Title,
-			Priority:  taskInfo.Priority,
-			DueDate:   taskInfo.DueDate,
-		}
-		result = append(result, response)
-	}
-
-	return result, nil
 }
 
 func GetTaskHistory(taskID, userID uint, role string) ([]models.TaskHistoryResponse, error) {

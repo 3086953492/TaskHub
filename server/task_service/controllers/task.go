@@ -49,11 +49,19 @@ func AssignHandler(c *gin.Context) {
 }
 
 func ListHandler(c *gin.Context) {
+
 	pageStr := c.Query("page")
 	pageSizeStr := c.Query("page_size")
+	assigneeIDStr := c.Query("assignee_id")
+	creatorIDStr := c.Query("creator_id")
+
+	userID := c.GetUint("user_id")
+	role := c.GetString("role")
 
 	var page uint
 	var pageSize uint
+	var assigneeID uint
+	var creatorID uint
 
 	if _, err := fmt.Sscanf(pageStr, "%d", &page); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的页码"})
@@ -65,7 +73,38 @@ func ListHandler(c *gin.Context) {
 		return
 	}
 
-	tasks, err := services.GetTaskList(page, pageSize)
+	conditions := make(map[string]interface{})
+
+	if assigneeIDStr != "" {
+		if _, err := fmt.Sscanf(assigneeIDStr, "%d", &assigneeID); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "无效的分配人ID"})
+			return
+		}
+		if role != "admin" && assigneeID != userID && assigneeID != 0 {	// 如果分配人ID不为0(未分配)，则只有创建者和分配者可以查看
+			c.JSON(http.StatusForbidden, gin.H{"error": "无权限查看其他人的任务"})
+			return
+		}
+		conditions["assignee_id"] = assigneeID
+	}
+
+	if creatorIDStr != "" {
+		if _, err := fmt.Sscanf(creatorIDStr, "%d", &creatorID); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "无效的创建人ID"})
+			return
+		}
+		if role != "admin" && creatorID != userID {	// 如果创建人ID不为0，则只有创建者可以查看
+			c.JSON(http.StatusForbidden, gin.H{"error": "无权限查看其他人的任务"})
+			return
+		}
+		conditions["creator_id"] = creatorID
+	}
+	
+	if len(conditions) == 0 && role != "admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "无权限查看任务列表"})
+		return
+	}
+
+	tasks, err := services.GetTaskList(page, pageSize, conditions)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -95,31 +134,6 @@ func DetailHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, task)
 }
 
-func ListUnassigned(c *gin.Context) {
-	pageStr := c.Query("page")
-	pageSizeStr := c.Query("page_size")
-
-	var page uint
-	var pageSize uint
-
-	if _, err := fmt.Sscanf(pageStr, "%d", &page); err != nil {
-		c.JSON(400, gin.H{"error": "无效的页码"})
-		return
-	}
-
-	if _, err := fmt.Sscanf(pageSizeStr, "%d", &pageSize); err != nil {
-		c.JSON(400, gin.H{"error": "无效的页大小"})
-		return
-	}
-
-	tasks, err := services.GetUnassignedTasks(page, pageSize)
-	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(200, tasks)
-}
 
 func HistoryHandler(c *gin.Context) {
 	taskIDStr := c.Param("id")
