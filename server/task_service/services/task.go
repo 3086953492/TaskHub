@@ -94,7 +94,8 @@ func AssignTask(taskID, userID uint) error {
 	}
 
 	// 创建历史记录
-	if err := repositories.CreateTaskHistory(tx, taskID, "分配", strconv.Itoa(int(userID)), userID); err != nil {
+	_, err = repositories.CreateTaskHistory(tx, taskID, "分配", strconv.Itoa(int(userID)), userID)
+	if err != nil {
 		tx.Rollback()
 		return err
 	}
