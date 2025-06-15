@@ -153,7 +153,7 @@ func UpdateTaskStatus(tx *gorm.DB, taskID uint, status int) error {
 }
 
 // 创建任务历史记录
-func CreateTaskHistory(tx *gorm.DB, taskID uint, action, fieldName, newValue string, operatorID uint) error {
+func CreateTaskHistory(tx *gorm.DB, taskID uint, action, remark string, operatorID uint) error {
 	db := tx
 	if db == nil {
 		db = global.DB
@@ -161,8 +161,6 @@ func CreateTaskHistory(tx *gorm.DB, taskID uint, action, fieldName, newValue str
 	if err := db.Create(&models.TaskHistory{
 		TaskID:     taskID,
 		Action:     action,
-		FieldName:  fieldName,
-		NewValue:   newValue,
 		OperatorID: operatorID,
 		CreatedAt:  time.Now(),
 	}).Error; err != nil {

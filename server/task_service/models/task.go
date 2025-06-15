@@ -36,9 +36,6 @@ type TaskHistory struct {
 	ID         uint      `gorm:"primaryKey;autoIncrement" json:"id"`
 	TaskID     uint      `json:"task_id"`
 	Action     string    `gorm:"size:50;not null" json:"action"` // 操作类型
-	FieldName  string    `gorm:"size:50" json:"field_name"`      // 字段名称
-	OldValue   string    `json:"old_value"`                      // 旧值
-	NewValue   string    `json:"new_value"`                      // 新值
 	OperatorID uint      `json:"operator_id"`                    // 操作人ID
 	Remark     string    `gorm:"size:500" json:"remark"`         // 备注
 	CreatedAt  time.Time `json:"created_at"`

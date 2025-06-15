@@ -94,7 +94,7 @@ func AssignTask(taskID, userID uint) error {
 	}
 
 	// 创建历史记录
-	if err := repositories.CreateTaskHistory(tx, taskID, "分配", "assignee_id", strconv.Itoa(int(userID)), userID); err != nil {
+	if err := repositories.CreateTaskHistory(tx, taskID, "分配", strconv.Itoa(int(userID)), userID); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -156,7 +156,7 @@ func GetTaskList(page, pageSize uint) ([]models.TaskListResponse, error) {
 }
 
 func GetTaskDetail(taskID, userID uint, role string) (*models.TaskDetailResponse, error) {
-	
+
 	if !CheckTaskViewPermission(taskID, userID, role) {
 		return nil, errors.New("无权限查看任务详情")
 	}
@@ -275,9 +275,6 @@ func GetTaskHistory(taskID, userID uint, role string) ([]models.TaskHistoryRespo
 		response := models.TaskHistoryResponse{
 			ID:         history.ID,
 			Action:     history.Action,
-			FieldName:  history.FieldName,
-			OldValue:   history.OldValue,
-			NewValue:   history.NewValue,
 			OperatorID: history.OperatorID,
 			Remark:     history.Remark,
 			CreatedAt:  history.CreatedAt,
@@ -290,7 +287,7 @@ func GetTaskHistory(taskID, userID uint, role string) ([]models.TaskHistoryRespo
 }
 
 func CheckTaskViewPermission(taskID, userID uint, role string) bool {
-	
+
 	if role != "admin" {
 		taskAssigneeID, err := repositories.GetTaskAssigneeID(taskID)
 		if err != nil {
@@ -300,7 +297,7 @@ func CheckTaskViewPermission(taskID, userID uint, role string) bool {
 		if err != nil {
 			return false
 		}
-		if taskAssigneeID != userID && taskCreatorID != userID && taskAssigneeID != 0 {	// 如果任务已分配，则只有创建者和分配者可以查看
+		if taskAssigneeID != userID && taskCreatorID != userID && taskAssigneeID != 0 { // 如果任务已分配，则只有创建者和分配者可以查看
 			return false
 		}
 	}
