@@ -6,6 +6,7 @@
 - **Go 语言** : 1.20+  
 - **MySQL 数据库** : 5.7+  
 - **Nginx 服务器** : 1.18+  
+- **Redis 数据库**
 
 ---
 
@@ -95,3 +96,4 @@ nginx.exe
 ## 📚 接口文档
 ### [用户服务接口文档](server/user_service/API_DOCUMENTATION.md)
 ### [图片服务接口文档](server/img_service/API文档.md)
+### [任务服务接口文档](server/task_service/API_Documentation.md)
