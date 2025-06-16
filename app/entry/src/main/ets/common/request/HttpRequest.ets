@@ -5,6 +5,9 @@ import { RequestBody } from '../response/RequestBody'
 // 这里需要引入第 1 步公共常量类
 import { Domain, HttpStatus, ContentType } from '../constant/CommonConstant'
 
+// 引入存储工具类获取token
+import { StorageUtil } from '../utils/StorageUtil'
+
 // 这里引用 HTTP 库
 import http from '@ohos.net.http'
 
@@ -12,13 +15,28 @@ import http from '@ohos.net.http'
 import { BusinessError } from '@kit.BasicServicesKit';
 
 class HttpRequest {
-  request(requestBody: RequestBody) {
-    const promise: Promise<ResponseResult> = new Promise((resolve: Function, reject: Function) => {
+  async request(requestBody: RequestBody) {
+    const promise: Promise<ResponseResult> = new Promise(async (resolve: Function, reject: Function) => {
 
       console.log('创建HTTP请求，请求地址：' + Domain.SERVER + requestBody.url + '，请求方式：' + requestBody.method + '，请求体：' + JSON.stringify(requestBody.data))
 
       // 创建HTTP请求
       const httpRequest = http.createHttp()
+
+      // 获取token
+      const token = await StorageUtil.getToken();
+      console.info('携带token进行请求：', token ? token.substring(0, 20) + '...' : '无token');
+
+      // 构建请求头
+      const headers: Record<string, string> = {
+        'Content-Type': ContentType.JSON
+      };
+
+      // 如果有token，添加Authorization头 - 直接使用token值，不加Bearer前缀
+      if (token) {
+        headers['Authorization'] = token;
+        console.info('设置Authorization头为直接token值');
+      }
 
       // 在这里发送 HTTP 请求，并且需要设置Url、Header、Body等信息
       httpRequest.request(
@@ -26,9 +44,7 @@ class HttpRequest {
         {
           method: isPost(requestBody.method) ? http.RequestMethod.POST : http.RequestMethod.GET,
           readTimeout: 10000,
-          header: {
-            'Content-Type': ContentType.JSON
-          },
+          header: headers,
           connectTimeout: 10000,
           extraData: requestBody.data
         },
