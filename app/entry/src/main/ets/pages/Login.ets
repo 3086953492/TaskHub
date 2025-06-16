@@ -1,7 +1,11 @@
 // 这里需要引入第 6 步创建的用户API
 import { userLogin } from '../common/api/user';
 import { UserInfo } from '../entity/userInfo';
+import { StorageUtil } from '../common/utils/StorageUtil';
+import { LoginResponse } from '../common/response/LoginResponseData';
 import promptAction from '@ohos.promptAction';
+import router from '@ohos.router';
+import common from '@ohos.app.ability.common';
 
 @Entry
 @Component
@@ -11,6 +15,7 @@ struct Login {
   @State isLoading: boolean = false;
   @State showPassword: boolean = false;
   @State cardScale: number = 1;
+  private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
 
   // 登录处理函数
   async handleLogin() {
@@ -40,13 +45,46 @@ struct Login {
 
       const response = await userLogin(userInfo);
       
+      console.info('登录响应数据：', JSON.stringify(response));
+      console.info('响应code值：', response.code);
+      
       if (response.code === 200) {
-        promptAction.showToast({
-          message: '登录成功',
-          duration: 2000
-        });
-        console.info('登录成功：' + JSON.stringify(response.data));
-        // 这里可以添加跳转到主页的逻辑
+        // 类型断言确保data是LoginResponseData类型
+        const loginResponse = response as LoginResponse;
+        // 存储token
+        const token = loginResponse.data?.token;
+        if (token) {
+          const storeSuccess = await StorageUtil.setToken(token);
+          if (storeSuccess) {
+            // 可以选择存储用户信息
+            if (loginResponse.data?.user) {
+              await StorageUtil.setUserInfo(loginResponse.data.user);
+            }
+            
+            promptAction.showToast({
+              message: '登录成功',
+              duration: 2000
+            });
+            console.info('登录成功，token已存储：' + JSON.stringify(loginResponse.data));
+            
+            // 跳转到主页
+            router.replaceUrl({
+              url: 'pages/Index'
+            }).catch((error: Error) => {
+              console.error('页面跳转失败：', error);
+            });
+          } else {
+            promptAction.showToast({
+              message: '登录信息保存失败',
+              duration: 2000
+            });
+          }
+        } else {
+          promptAction.showToast({
+            message: '服务器响应异常',
+            duration: 2000
+          });
+        }
       } else {
         promptAction.showToast({
           message: response.msg || '登录失败',
@@ -64,7 +102,22 @@ struct Login {
     }
   }
 
-  aboutToAppear() {
+  async aboutToAppear() {
+    // 初始化存储
+    await StorageUtil.init(this.context);
+    
+    // 检查是否已经登录
+    const token = await StorageUtil.getToken();
+    if (token) {
+      // 如果已经有token，直接跳转到主页
+      router.replaceUrl({
+        url: 'pages/Index'
+      }).catch((error: Error) => {
+        console.error('页面跳转失败：', error);
+      });
+      return;
+    }
+    
     // 入场动画
     animateTo({
       duration: 600,

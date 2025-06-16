@@ -41,18 +41,12 @@ class HttpRequest {
 
             // 判断响应码是否成功
             if (data.responseCode === HttpStatus.SUCCESS) {
-
-              if (resultJSON.code === 0) {
-                console.info('请求成功：' + resultJSON.data)
-
-                resolve(resultJSON)
-              } else {
-                reject(new Error('' + resultJSON.msg))
-                errorDialog('' + resultJSON.msg)
-              }
+              // 统一返回响应结果，让调用方根据业务code进行判断
+              console.info('HTTP请求成功，响应数据：' + result)
+              resolve(resultJSON)
             } else {
-              reject(new Error('' + resultJSON.msg))
-              errorDialog('' + resultJSON.msg)
+              reject(new Error('HTTP请求失败，状态码：' + data.responseCode))
+              errorDialog('HTTP请求失败，状态码：' + data.responseCode)
             }
 
             // 当该请求使用完毕时，调用destroy方法主动销毁

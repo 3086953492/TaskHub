@@ -1,3 +1,8 @@
+import { StorageUtil } from '../common/utils/StorageUtil';
+import promptAction from '@ohos.promptAction';
+import router from '@ohos.router';
+import common from '@ohos.app.ability.common';
+
 // 任务数据模型
 interface TaskItem {
   task_id: number;
@@ -11,6 +16,8 @@ interface TaskItem {
 @Entry
 @Component
 struct Index {
+  private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
+  
   // 静态任务数据
   @State taskList: TaskItem[] = [
     {
@@ -102,6 +109,34 @@ struct Index {
     const date = new Date(dateString);
     return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
   }
+  
+  // 初始化存储
+  async aboutToAppear() {
+    await StorageUtil.init(this.context);
+  }
+  
+  // 注销登录
+  async logout() {
+    const success = await StorageUtil.clear();
+    if (success) {
+      promptAction.showToast({
+        message: '已退出登录',
+        duration: 2000
+      });
+      
+      // 跳转到登录页面
+      router.replaceUrl({
+        url: 'pages/Login'
+      }).catch((error: Error) => {
+        console.error('页面跳转失败：', error);
+      });
+    } else {
+      promptAction.showToast({
+        message: '退出登录失败',
+        duration: 2000
+      });
+    }
+  }
 
   build() {
     Column() {
@@ -111,10 +146,24 @@ struct Index {
           .fontSize(24)
           .fontWeight(FontWeight.Bold)
           .fontColor('#182431')
+          .layoutWeight(1)
+        
+        // 注销按钮
+        Button('退出')
+          .backgroundColor('#FF4444')
+          .fontColor(Color.White)
+          .fontSize(14)
+          .padding({ left: 16, right: 16, top: 8, bottom: 8 })
+          .borderRadius(8)
+          .onClick(() => {
+            this.logout();
+          })
       }
       .width('100%')
       .height(60)
-      .justifyContent(FlexAlign.Center)
+      .padding({ left: 16, right: 16 })
+      .justifyContent(FlexAlign.SpaceBetween)
+      .alignItems(VerticalAlign.Center)
       .backgroundColor('#FFFFFF')
       .margin(10)
 
