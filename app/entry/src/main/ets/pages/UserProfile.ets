@@ -16,6 +16,11 @@ struct UserProfile {
     await this.loadUserInfo();
   }
 
+  // 页面显示时刷新用户信息
+  async onPageShow() {
+    await this.loadUserInfo();
+  }
+
   // 加载用户信息
   async loadUserInfo() {
     try {
@@ -57,11 +62,12 @@ struct UserProfile {
     }
   }
 
-  // 编辑用户信息（暂时只显示提示）
+  // 跳转到编辑用户信息页面
   editUserInfo() {
-    promptAction.showToast({
-      message: '编辑功能开发中',
-      duration: 2000
+    router.pushUrl({
+      url: 'pages/EditProfile'
+    }).catch((error: Error) => {
+      console.error('页面跳转失败：', error);
     });
   }
 

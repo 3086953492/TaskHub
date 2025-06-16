@@ -3,6 +3,7 @@
     "pages/Index",
     "pages/Login",
     "pages/UserProfile",
-    "pages/Register"
+    "pages/Register",
+    "pages/EditProfile"
   ]
 }

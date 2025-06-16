@@ -10,6 +10,7 @@ export interface UserInfoData {
   nickname?: string;
   avatar?: string;
   role?: string;
+  password?: string; // 用于更新密码，不会存储到本地
 }
 
 /**

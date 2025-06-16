@@ -42,7 +42,7 @@ class HttpRequest {
       httpRequest.request(
         Domain.SERVER + requestBody.url,
         {
-          method: isPost(requestBody.method) ? http.RequestMethod.POST : http.RequestMethod.GET,
+          method: getHttpMethod(requestBody.method),
           readTimeout: 10000,
           header: headers,
           connectTimeout: 10000,
@@ -53,16 +53,29 @@ class HttpRequest {
           if (!err) {
 
             let result = `${data.result}`
-            let resultJSON: ResponseResult = JSON.parse(result)
+            console.info('HTTP响应，状态码：' + data.responseCode + '，响应数据：' + result)
 
-            // 判断响应码是否成功
-            if (data.responseCode === HttpStatus.SUCCESS) {
-              // 统一返回响应结果，让调用方根据业务code进行判断
-              console.info('HTTP请求成功，响应数据：' + result)
-              resolve(resultJSON)
-            } else {
-              reject(new Error('HTTP请求失败，状态码：' + data.responseCode))
-              errorDialog('HTTP请求失败，状态码：' + data.responseCode)
+            try {
+              let resultJSON: ResponseResult = JSON.parse(result)
+
+              // 判断响应码是否成功
+              if (data.responseCode === HttpStatus.SUCCESS) {
+                // 统一返回响应结果，让调用方根据业务code进行判断
+                console.info('HTTP请求成功，响应数据：' + result)
+                resolve(resultJSON)
+              } else {
+                // 对于非200状态码，也尝试解析JSON响应
+                console.error('HTTP请求失败，状态码：' + data.responseCode + '，响应：' + result)
+                resolve(resultJSON) // 仍然返回解析的JSON，让调用方处理错误
+              }
+            } catch (parseError) {
+              console.error('JSON解析失败：' + parseError + '，原始响应：' + result)
+              // JSON解析失败时，构造一个标准的错误响应
+              const errorResponse: ResponseResult = new ResponseResult()
+              errorResponse.code = data.responseCode
+              errorResponse.msg = '服务器响应格式错误'
+              errorResponse.data = result
+              resolve(errorResponse)
             }
 
             // 当该请求使用完毕时，调用destroy方法主动销毁
@@ -93,6 +106,22 @@ class HttpRequest {
 
 const httpRequest = new HttpRequest();
 export default httpRequest as HttpRequest;
+
+// 获取HTTP方法
+function getHttpMethod(method: string): http.RequestMethod {
+  switch (method.toUpperCase()) {
+    case 'GET':
+      return http.RequestMethod.GET;
+    case 'POST':
+      return http.RequestMethod.POST;
+    case 'PUT':
+      return http.RequestMethod.PUT;
+    case 'DELETE':
+      return http.RequestMethod.DELETE;
+    default:
+      return http.RequestMethod.GET;
+  }
+}
 
 // 判断是否是GET方法
 function isGet(method: string): boolean | undefined {
