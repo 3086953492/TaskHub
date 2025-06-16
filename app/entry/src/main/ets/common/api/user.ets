@@ -15,3 +15,12 @@ export function userLogin(params: UserInfo): Promise<ResponseResult> {
     method:'POST'
   })
 }
+
+// 用户注册 API
+export function userRegister(params: UserInfo): Promise<ResponseResult> {
+  return HttpRequest.request({
+    url: '/user/register',
+    data: params,
+    method:'POST'
+  })
+}

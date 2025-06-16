@@ -287,9 +287,10 @@ struct Login {
               .fontColor('#6366F1')
               .fontWeight(FontWeight.Medium)
               .onClick(() => {
-                promptAction.showToast({
-                  message: '注册功能开发中',
-                  duration: 2000
+                router.replaceUrl({
+                  url: 'pages/Register'
+                }).catch((error: Error) => {
+                  console.error('页面跳转失败：', error);
                 });
               })
           }
