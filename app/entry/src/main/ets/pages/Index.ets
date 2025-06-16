@@ -1,23 +1,20 @@
+// 这里需要引入第 6 步创建的用户API
+import { userLogin } from '../common/api/user';
+
 @Entry
 @Component
 struct Index {
-  @State message: string = 'Hello World';
+
+  // 在进入页面时调用 userLogin 接口进行测试
+  aboutToAppear(): void {
+    userLogin({username: 'user', password: 'useruser'}).then(res => {
+      console.info('页面成功获取到用户信息：' + res.data)
+    })
+  }
 
   build() {
     RelativeContainer() {
-      Text(this.message)
-        .id('HelloWorld')
-        .fontSize($r('app.float.page_text_font_size'))
-        .fontWeight(FontWeight.Bold)
-        .alignRules({
-          center: { anchor: '__container__', align: VerticalAlign.Center },
-          middle: { anchor: '__container__', align: HorizontalAlign.Center }
-        })
-        .onClick(() => {
-          this.message = 'Welcome';
-        })
+
     }
-    .height('100%')
-    .width('100%')
   }
 }
