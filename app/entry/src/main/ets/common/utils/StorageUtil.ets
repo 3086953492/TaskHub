@@ -10,7 +10,6 @@ export interface UserInfoData {
   nickname?: string;
   avatar?: string;
   role?: string;
-  created_at?: string;
 }
 
 /**

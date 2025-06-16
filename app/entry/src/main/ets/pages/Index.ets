@@ -1,4 +1,5 @@
 import { StorageUtil } from '../common/utils/StorageUtil';
+import { BottomNavigation } from '../common/components/BottomNavigation';
 import promptAction from '@ohos.promptAction';
 import router from '@ohos.router';
 import common from '@ohos.app.ability.common';
@@ -114,130 +115,105 @@ struct Index {
   async aboutToAppear() {
     await StorageUtil.init(this.context);
   }
-  
-  // 注销登录
-  async logout() {
-    const success = await StorageUtil.clear();
-    if (success) {
-      promptAction.showToast({
-        message: '已退出登录',
-        duration: 2000
-      });
-      
-      // 跳转到登录页面
-      router.replaceUrl({
-        url: 'pages/Login'
-      }).catch((error: Error) => {
-        console.error('页面跳转失败：', error);
-      });
-    } else {
-      promptAction.showToast({
-        message: '退出登录失败',
-        duration: 2000
-      });
-    }
-  }
 
   build() {
     Column() {
-      // 标题栏
-      Row() {
-        Text('任务列表')
-          .fontSize(24)
-          .fontWeight(FontWeight.Bold)
-          .fontColor('#182431')
-          .layoutWeight(1)
-        
-        // 注销按钮
-        Button('退出')
-          .backgroundColor('#FF4444')
-          .fontColor(Color.White)
-          .fontSize(14)
-          .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-          .borderRadius(8)
-          .onClick(() => {
-            this.logout();
-          })
-      }
-      .width('100%')
-      .height(60)
-      .padding({ left: 16, right: 16 })
-      .justifyContent(FlexAlign.SpaceBetween)
-      .alignItems(VerticalAlign.Center)
-      .backgroundColor('#FFFFFF')
-      .margin(10)
+      // 内容区域
+      Column() {
+        // 标题栏
+        Row() {
+          Text('任务列表')
+            .fontSize(24)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#182431')
+            .layoutWeight(1)
+        }
+        .width('100%')
+        .height(60)
+        .padding({ left: 16, right: 16 })
+        .justifyContent(FlexAlign.SpaceBetween)
+        .alignItems(VerticalAlign.Center)
+        .backgroundColor('#FFFFFF')
+        .margin(10)
 
-      // 任务列表
-      List({ space: 12 }) {
-        ForEach(this.taskList, (task: TaskItem) => {
-          ListItem() {
-            Column({ space: 8 }) {
-              // 任务标题和优先级
-              Row() {
-                Text(task.title)
-                  .fontSize(16)
-                  .fontWeight(FontWeight.Medium)
-                  .fontColor('#182431')
-                  .maxLines(2)
-                  .textOverflow({ overflow: TextOverflow.Ellipsis })
-                  .layoutWeight(1)
+        // 任务列表
+        List({ space: 12 }) {
+          ForEach(this.taskList, (task: TaskItem) => {
+            ListItem() {
+              Column({ space: 8 }) {
+                // 任务标题和优先级
+                Row() {
+                  Text(task.title)
+                    .fontSize(16)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor('#182431')
+                    .maxLines(2)
+                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+                    .layoutWeight(1)
 
-                Text(this.getPriorityText(task.priority))
-                  .fontSize(12)
-                  .fontColor(Color.White)
-                  .backgroundColor(this.getPriorityColor(task.priority))
-                  .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-                  .borderRadius(12)
+                  Text(this.getPriorityText(task.priority))
+                    .fontSize(12)
+                    .fontColor(Color.White)
+                    .backgroundColor(this.getPriorityColor(task.priority))
+                    .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+                    .borderRadius(12)
+                }
+                .width('100%')
+                .alignItems(VerticalAlign.Top)
+
+                // 状态和创建时间
+                Row() {
+                  Text(this.getStatusText(task.status))
+                    .fontSize(14)
+                    .fontColor(this.getStatusColor(task.status))
+                    .fontWeight(FontWeight.Medium)
+
+                  Blank()
+
+                  Text(`创建: ${this.formatDate(task.created_at)}`)
+                    .fontSize(12)
+                    .fontColor('#99182431')
+                }
+                .width('100%')
+
+                // 截止日期
+                Row() {
+                  Text(`截止: ${this.formatDate(task.due_date)}`)
+                    .fontSize(12)
+                    .fontColor('#99182431')
+
+                  Blank()
+
+                  Text(`#${task.task_id}`)
+                    .fontSize(12)
+                    .fontColor('#66182431')
+                }
+                .width('100%')
               }
               .width('100%')
-              .alignItems(VerticalAlign.Top)
-
-              // 状态和创建时间
-              Row() {
-                Text(this.getStatusText(task.status))
-                  .fontSize(14)
-                  .fontColor(this.getStatusColor(task.status))
-                  .fontWeight(FontWeight.Medium)
-
-                Blank()
-
-                Text(`创建: ${this.formatDate(task.created_at)}`)
-                  .fontSize(12)
-                  .fontColor('#99182431')
-              }
-              .width('100%')
-
-              // 截止日期
-              Row() {
-                Text(`截止: ${this.formatDate(task.due_date)}`)
-                  .fontSize(12)
-                  .fontColor('#99182431')
-
-                Blank()
-
-                Text(`#${task.task_id}`)
-                  .fontSize(12)
-                  .fontColor('#66182431')
-              }
-              .width('100%')
+              .padding(16)
+              .backgroundColor('#FFFFFF')
+              .borderRadius(8)
+              .shadow({
+                radius: 4,
+                color: '#1A000000',
+                offsetX: 0,
+                offsetY: 2
+              })
             }
-            .width('100%')
-            .padding(16)
-            .backgroundColor('#FFFFFF')
-            .borderRadius(8)
-            .shadow({
-              radius: 4,
-              color: '#1A000000',
-              offsetX: 0,
-              offsetY: 2
-            })
-          }
-        })
+          })
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .padding({ left: 16, right: 16, bottom: 16 })
+        .scrollBar(BarState.Auto)
       }
-      .width('100%')
       .layoutWeight(1)
-      .padding({ left: 16, right: 16, bottom: 16 })
-      .scrollBar(BarState.Auto)
+      .width('100%')
+      .backgroundColor('#F1F3F5')
+
+      // 底部导航栏
+      BottomNavigation({ currentPageIndex: 0 })
     }
     .width('100%')
     .height('100%')
