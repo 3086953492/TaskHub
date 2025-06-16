@@ -38,6 +38,14 @@
   "code": 200,
   "msg": "登录成功",
   "data": {
+    "user": {
+      "id": 1,
+      "username": "testuser",
+      "email": "test@example.com",
+      "role": "user",
+      "nickname": "user",
+      "avatar": "url"
+    },
     "token": "JWT令牌"
   }
 }

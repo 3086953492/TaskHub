@@ -13,22 +13,34 @@ import (
 	"go.uber.org/zap"
 )
 
-func LoginService(req *models.LoginRequest) (string, error) {
+func LoginService(req *models.LoginRequest) (*models.UserResponse, string, error) {
 
 	user, err := repositories.Login(req)
 	if err != nil {
-		return "", err
+		return nil, "", err
+	}
+
+	userProfile, err := repositories.GetUserProfileByUserID(user.ID)
+	if err != nil {
+		return nil, "", err
 	}
 
 	// 生成JWT令牌
 	token, err := GenerateToken(user.ID, user.Username, user.Role)
 	if err != nil {
-		return "", err
+		return nil, "", err
 	}
 
 	logger.Info("用户登录成功", zap.String("username", user.Username))
 
-	return token, nil
+	return &models.UserResponse{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		Role:      user.Role,
+		Nickname:  userProfile.Nickname,
+		Avatar:    userProfile.Avatar,
+	}, token, nil
 }
 
 func RegisterService(req *models.RegisterRequest) (*models.User, error) {

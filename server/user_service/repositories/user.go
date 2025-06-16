@@ -152,3 +152,11 @@ func GetUserByEmail(email string) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+func GetUserProfileByUserID(userID uint) (*models.UserProfile, error) {
+	var userProfile models.UserProfile
+	if err := global.DB.Where("user_id = ?", userID).First(&userProfile).Error; err != nil {
+		return nil, err
+	}
+	return &userProfile, nil
+}

@@ -20,7 +20,7 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	token, err := services.LoginService(&req)
+	user, token, err := services.LoginService(&req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": 500,
@@ -36,6 +36,7 @@ func LoginHandler(c *gin.Context) {
 		"code": 200,
 		"msg":  "登录成功",
 		"data": gin.H{
+			"user":  user,
 			"token": token,
 		},
 	})

@@ -50,3 +50,12 @@ type UpdateUserRequest struct {
 	Nickname string `json:"nickname" validate:"omitempty,max=50"`
 	Avatar   string `json:"avatar"`
 }
+
+type UserResponse struct {
+	ID        uint   `json:"id"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
+	Nickname  string `json:"nickname"`
+	Avatar    string `json:"avatar"`
+}
