@@ -15,5 +15,11 @@ func RefreshHandler(c *gin.Context) {
 	newToken, _ := services.RefreshToken(token)
 
 	// 返回新令牌
-	c.JSON(http.StatusOK, gin.H{"token": newToken})
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"msg":  "刷新令牌成功",
+		"data": gin.H{
+			"token": newToken,
+		},
+	})
 }

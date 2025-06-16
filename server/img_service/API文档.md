@@ -33,8 +33,11 @@
 **成功响应 (200)**
 ```json
 {
-    "message": "图片上传成功",
-    "path": "图片存储路径"
+    "code": 200,
+    "msg": "图片上传成功",
+    "data": {
+        "path": "图片存储路径"
+    }
 }
 ```
 
@@ -42,8 +45,8 @@
 
 | HTTP状态码 | 描述 | 响应示例 |
 |------------|------|----------|
-| 400 | 请求参数错误或文件类型不支持 | `{"error": "只允许上传JPEG, PNG或GIF图片"}` |
-| 500 | 服务器内部错误 | `{"error": "文件上传失败"}` |
+| 400 | 请求参数错误或文件类型不支持 | `{"code": 400, "msg": "只允许上传JPEG, PNG或GIF图片", "data": {"path": ""}}` |
+| 500 | 服务器内部错误 | `{"code": 500, "msg": "图片上传失败", "data": {"path": ""}}` |
 | 401 | 未认证 | `{"error": "认证失败"}` |
 
 #### 请求示例
@@ -68,7 +71,15 @@ fetch('/img/', {
     body: formData
 })
 .then(response => response.json())
-.then(data => console.log(data));
+.then(data => {
+    if (data.code === 200) {
+        console.log('上传成功，图片路径:', data.data.path);
+        // 显示上传的图片
+        showUploadedImage(data.data.path);
+    } else {
+        console.error('上传失败:', data.msg);
+    }
+});
 ```
 
 #### 响应示例
@@ -76,15 +87,22 @@ fetch('/img/', {
 **成功响应**
 ```json
 {
-    "message": "图片上传成功",
-    "path": "/uploads/2024/01/15/image_123456.jpg"
+    "code": 200,
+    "msg": "图片上传成功",
+    "data": {
+        "path": "/uploads/2024/01/15/image_123456.jpg"
+    }
 }
 ```
 
 **错误响应**
 ```json
 {
-    "error": "只允许上传JPEG, PNG或GIF图片"
+    "code": 400,
+    "msg": "只允许上传JPEG, PNG或GIF图片",
+    "data": {
+        "path": ""
+    }
 }
 ```
 
@@ -159,10 +177,12 @@ fetch('/img/', {
 })
 .then(response => response.json())
 .then(data => {
-    if (data.path) {
-        console.log('上传成功，图片路径:', data.path);
+    if (data.code === 200) {
+        console.log('上传成功，图片路径:', data.data.path);
         // 显示上传的图片
-        showUploadedImage(data.path);
+        showUploadedImage(data.data.path);
+    } else {
+        console.error('上传失败:', data.msg);
     }
 });
 ```
