@@ -56,16 +56,26 @@ struct Login {
         if (token) {
           const storeSuccess = await StorageUtil.setToken(token);
           if (storeSuccess) {
-            // 可以选择存储用户信息
+            console.info('Token存储成功');
+            
+            // 存储用户信息
             if (loginResponse.data?.user) {
-              await StorageUtil.setUserInfo(loginResponse.data.user);
+              const userStoreSuccess = await StorageUtil.setUserInfo(loginResponse.data.user);
+              if (userStoreSuccess) {
+                console.info('用户信息存储成功：', JSON.stringify(loginResponse.data.user));
+              } else {
+                console.error('用户信息存储失败');
+                // 即使用户信息存储失败，也继续登录流程，只是记录错误
+              }
+            } else {
+              console.warn('服务器未返回用户信息');
             }
             
             promptAction.showToast({
               message: '登录成功',
               duration: 2000
             });
-            console.info('登录成功，token已存储：' + JSON.stringify(loginResponse.data));
+            console.info('登录成功，用户数据已存储：', JSON.stringify(loginResponse.data));
             
             // 跳转到主页
             router.replaceUrl({
@@ -81,7 +91,7 @@ struct Login {
           }
         } else {
           promptAction.showToast({
-            message: '服务器响应异常',
+            message: '服务器响应异常：缺少令牌',
             duration: 2000
           });
         }
@@ -107,9 +117,10 @@ struct Login {
     await StorageUtil.init(this.context);
     
     // 检查是否已经登录
-    const token = await StorageUtil.getToken();
-    if (token) {
-      // 如果已经有token，直接跳转到主页
+    const isLoggedIn = await StorageUtil.isUserLoggedIn();
+    if (isLoggedIn) {
+      // 如果用户已登录，直接跳转到主页
+      console.info('用户已登录，直接跳转到主页');
       router.replaceUrl({
         url: 'pages/Index'
       }).catch((error: Error) => {

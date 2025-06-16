@@ -122,6 +122,52 @@ export class StorageUtil {
   }
   
   /**
+   * 删除用户信息
+   */
+  static async removeUserInfo(): Promise<boolean> {
+    try {
+      if (!StorageUtil.preferences) {
+        console.error('存储未初始化');
+        return false;
+      }
+      await StorageUtil.preferences.delete(StorageUtil.USER_INFO_KEY);
+      await StorageUtil.preferences.flush();
+      return true;
+    } catch (error) {
+      console.error('删除用户信息失败：', error);
+      return false;
+    }
+  }
+  
+  /**
+   * 检查用户是否已登录（有效token和用户信息）
+   */
+  static async isUserLoggedIn(): Promise<boolean> {
+    try {
+      const token = await StorageUtil.getToken();
+      const userInfo = await StorageUtil.getUserInfo();
+      return !!token && !!userInfo;
+    } catch (error) {
+      console.error('检查登录状态失败：', error);
+      return false;
+    }
+  }
+  
+  /**
+   * 用户退出登录（清除token和用户信息）
+   */
+  static async logout(): Promise<boolean> {
+    try {
+      const tokenRemoved = await StorageUtil.removeToken();
+      const userInfoRemoved = await StorageUtil.removeUserInfo();
+      return tokenRemoved && userInfoRemoved;
+    } catch (error) {
+      console.error('退出登录失败：', error);
+      return false;
+    }
+  }
+  
+  /**
    * 清除所有存储数据
    */
   static async clear(): Promise<boolean> {
