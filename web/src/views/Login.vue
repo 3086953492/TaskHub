@@ -64,16 +64,7 @@
         </button>
       </form>
 
-      <!-- 其他登录方式 -->
-      <div class="divider">
-        <span>或</span>
-      </div>
 
-      <div class="alternative-login">
-        <button class="alt-btn demo-btn" @click="handleDemoLogin">
-          演示账号登录
-        </button>
-      </div>
 
       <!-- 底部信息 -->
       <div class="login-footer">
@@ -91,10 +82,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { loginUser } from '../api/auth'
+import { useAuth } from '../composables/useAuth'
 
 const router = useRouter()
+const { login, initAuth } = useAuth()
 
 // 表单数据
 const loginForm = reactive({
@@ -154,28 +148,33 @@ const handleLogin = async () => {
   isLoading.value = true
 
   try {
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    const response = await loginUser({
+      username: loginForm.username,
+      password: loginForm.password
+    })
     
-    // 这里应该调用真实的登录API
-    console.log('登录信息:', loginForm)
-    
-    // 登录成功，跳转到首页
-    router.push('/')
+    if (response.code === 200 && response.data) {
+      // 登录成功，存储用户信息和token
+      login(response.data.user, response.data.token)
+      
+      // 跳转到首页
+      router.push('/')
+    } else {
+      // 显示错误消息
+      errors.password = response.msg || '登录失败'
+    }
   } catch (error) {
     console.error('登录失败:', error)
-    // 这里可以显示错误提示
+    errors.password = '网络错误，请稍后重试'
   } finally {
     isLoading.value = false
   }
 }
 
-// 演示账号登录
-const handleDemoLogin = async () => {
-  loginForm.username = 'demo'
-  loginForm.password = 'demo123'
-  await handleLogin()
-}
+// 初始化认证状态
+onMounted(() => {
+  initAuth()
+})
 </script>
 
 <style scoped>
@@ -404,55 +403,7 @@ const handleDemoLogin = async () => {
   to { transform: rotate(360deg); }
 }
 
-.divider {
-  text-align: center;
-  margin: 20px 0;
-  position: relative;
-}
 
-.divider::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: #e5e7eb;
-}
-
-.divider span {
-  background: white;
-  padding: 0 16px;
-  color: #6b7280;
-  font-size: 14px;
-  position: relative;
-}
-
-.alternative-login {
-  margin-bottom: 24px;
-}
-
-.alt-btn {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #e5e7eb;
-  background: white;
-  border-radius: 10px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-bottom: 12px;
-}
-
-.demo-btn {
-  color: #667eea;
-  border-color: #667eea;
-}
-
-.demo-btn:hover {
-  background: #667eea;
-  color: white;
-}
 
 .login-footer {
   text-align: center;
