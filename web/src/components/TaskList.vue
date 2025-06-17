@@ -61,8 +61,22 @@
       </div>
     </div>
 
+    <!-- 加载状态 -->
+    <div v-if="isLoading" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>正在加载任务列表...</p>
+    </div>
+
+    <!-- 错误状态 -->
+    <div v-else-if="error" class="error-state">
+      <div class="error-icon">❌</div>
+      <h3>加载失败</h3>
+      <p>{{ error }}</p>
+      <button @click="fetchTasks" class="retry-btn">重试</button>
+    </div>
+
     <!-- 任务列表 -->
-    <div class="task-list" v-if="paginatedTasks.length > 0">
+    <div v-else-if="paginatedTasks.length > 0" class="task-list">
       <TaskItem 
         v-for="task in paginatedTasks" 
         :key="task.task_id" 
@@ -74,7 +88,8 @@
     <div v-else class="empty-state">
       <div class="empty-icon">📋</div>
       <h3>暂无任务</h3>
-      <p>没有找到符合条件的任务</p>
+      <p>{{ isLoggedIn ? '没有找到符合条件的任务' : '请先登录查看任务' }}</p>
+      <router-link v-if="!isLoggedIn" to="/login" class="login-link">前往登录</router-link>
     </div>
 
     <!-- 分页器 -->
@@ -115,8 +130,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import TaskItem from './TaskItem.vue'
+import { getTaskList } from '../api/task'
+import type { TaskListItem } from '../api/task'
+import { useAuth } from '../composables/useAuth'
 
 interface Task {
   task_id: number
@@ -127,6 +145,8 @@ interface Task {
   due_date?: string
 }
 
+const { user, isLoggedIn } = useAuth()
+
 // 响应式数据
 const tasks = ref<Task[]>([])
 const currentPage = ref(1)
@@ -134,90 +154,45 @@ const pageSize = ref(6)
 const statusFilter = ref('')
 const priorityFilter = ref('')
 const searchQuery = ref('')
+const isLoading = ref(false)
+const error = ref('')
 
-// 模拟数据
-const mockTasks: Task[] = [
-  {
-    task_id: 1,
-    status: 1,
-    created_at: '2024-01-15T09:30:00Z',
-    title: '完成项目需求文档',
-    priority: 1,
-    due_date: '2024-01-25T18:00:00Z'
-  },
-  {
-    task_id: 2,
-    status: 2,
-    created_at: '2024-01-14T14:20:00Z',
-    title: '设计系统架构图',
-    priority: 1,
-    due_date: '2024-01-20T17:00:00Z'
-  },
-  {
-    task_id: 3,
-    status: 3,
-    created_at: '2024-01-13T11:15:00Z',
-    title: '编写API接口文档',
-    priority: 2,
-    due_date: '2024-01-18T16:00:00Z'
-  },
-  {
-    task_id: 4,
-    status: 1,
-    created_at: '2024-01-12T16:45:00Z',
-    title: '数据库表结构设计',
-    priority: 2,
-    due_date: '2024-01-22T15:30:00Z'
-  },
-  {
-    task_id: 5,
-    status: 2,
-    created_at: '2024-01-11T10:00:00Z',
-    title: '前端页面原型设计',
-    priority: 1,
-    due_date: '2024-01-19T12:00:00Z'
-  },
-  {
-    task_id: 6,
-    status: 4,
-    created_at: '2024-01-10T13:30:00Z',
-    title: '老版本系统维护',
-    priority: 3,
-    due_date: '2024-01-15T09:00:00Z'
-  },
-  {
-    task_id: 7,
-    status: 1,
-    created_at: '2024-01-16T08:15:00Z',
-    title: '用户体验优化方案',
-    priority: 2,
-    due_date: '2024-01-28T17:00:00Z'
-  },
-  {
-    task_id: 8,
-    status: 3,
-    created_at: '2024-01-09T15:20:00Z',
-    title: '性能测试报告',
-    priority: 1,
-    due_date: '2024-01-17T14:00:00Z'
-  },
-  {
-    task_id: 9,
-    status: 2,
-    created_at: '2024-01-17T11:45:00Z',
-    title: '移动端适配开发',
-    priority: 2,
-    due_date: '2024-02-01T18:00:00Z'
-  },
-  {
-    task_id: 10,
-    status: 1,
-    created_at: '2024-01-18T09:00:00Z',
-    title: '安全漏洞修复',
-    priority: 1,
-    due_date: '2024-01-21T16:00:00Z'
+// 获取任务列表
+const fetchTasks = async () => {
+  if (!isLoggedIn.value) {
+    error.value = '请先登录'
+    return
   }
-]
+
+  isLoading.value = true
+  error.value = ''
+
+  try {
+    // 根据用户角色构建请求参数
+    const params: any = {
+      page: currentPage.value,
+      page_size: pageSize.value
+    }
+
+    // 管理员获取所有任务，普通用户添加assignee_id=0条件
+    if (user.value?.role !== 'admin') {
+      params.assignee_id = 0
+    }
+
+    const response = await getTaskList(params)
+    
+    if (response.code === 200 && response.data) {
+      tasks.value = response.data
+    } else {
+      error.value = response.msg || '获取任务列表失败'
+    }
+  } catch (err) {
+    console.error('获取任务列表失败:', err)
+    error.value = '网络错误，请稍后重试'
+  } finally {
+    isLoading.value = false
+  }
+}
 
 // 计算属性
 const filteredTasks = computed(() => {
@@ -309,9 +284,26 @@ const nextPage = () => {
   }
 }
 
+// 监听器
+watch([currentPage, isLoggedIn], () => {
+  if (isLoggedIn.value) {
+    fetchTasks()
+  }
+}, { immediate: true })
+
+// 监听用户变化，重新获取数据
+watch(user, () => {
+  if (user.value) {
+    currentPage.value = 1
+    fetchTasks()
+  }
+})
+
 // 生命周期
 onMounted(() => {
-  tasks.value = mockTasks
+  if (isLoggedIn.value) {
+    fetchTasks()
+  }
 })
 </script>
 
@@ -418,6 +410,82 @@ onMounted(() => {
 
 .task-list {
   margin-bottom: 32px;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+.loading-state p {
+  color: #6b7280;
+  margin: 0;
+}
+
+.error-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.error-state h3 {
+  color: #dc2626;
+  margin: 0 0 8px 0;
+}
+
+.error-state p {
+  color: #6b7280;
+  margin: 0 0 20px 0;
+}
+
+.retry-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.retry-btn:hover {
+  background: #2563eb;
+}
+
+.login-link {
+  display: inline-block;
+  background: #3b82f6;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  margin-top: 16px;
+  transition: background-color 0.2s;
+}
+
+.login-link:hover {
+  background: #2563eb;
 }
 
 .empty-state {
