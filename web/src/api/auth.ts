@@ -19,15 +19,45 @@ export interface LoginParams {
   password: string
 }
 
+// 注册请求参数
+export interface RegisterParams {
+  username: string
+  email: string
+  password: string
+  nickname: string
+}
+
 // 登录响应数据
 export interface LoginResponse {
   user: User
   token: string
 }
 
+// 注册响应数据
+export interface RegisterResponse {
+  user: Omit<User, 'avatar'>
+}
+
 // 用户登录
 export const loginUser = async (params: LoginParams): Promise<ApiResponse<LoginResponse>> => {
   const response = await fetch(`${API_BASE_URL}/user/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(params),
+  })
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+
+  return await response.json()
+}
+
+// 用户注册
+export const registerUser = async (params: RegisterParams): Promise<ApiResponse<RegisterResponse>> => {
+  const response = await fetch(`${API_BASE_URL}/user/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
