@@ -6,60 +6,7 @@
       <p>高效管理您的任务和项目</p>
     </div>
 
-    <!-- 筛选器 -->
-    <div class="filters">
-      <div class="filter-group">
-        <label>状态筛选:</label>
-        <select v-model="statusFilter" @change="applyFilters">
-          <option value="">全部状态</option>
-          <option value="1">待处理</option>
-          <option value="2">进行中</option>
-          <option value="3">已完成</option>
-          <option value="4">已取消</option>
-        </select>
-      </div>
 
-      <div class="filter-group">
-        <label>优先级筛选:</label>
-        <select v-model="priorityFilter" @change="applyFilters">
-          <option value="">全部优先级</option>
-          <option value="1">高优先级</option>
-          <option value="2">中优先级</option>
-          <option value="3">低优先级</option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label>搜索:</label>
-        <input 
-          type="text" 
-          v-model="searchQuery" 
-          @input="applyFilters"
-          placeholder="搜索任务标题..."
-          class="search-input"
-        />
-      </div>
-    </div>
-
-    <!-- 统计信息 -->
-    <div class="stats">
-      <div class="stat-item">
-        <span class="stat-number">{{ stats.total }}</span>
-        <span class="stat-label">总任务数</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-number">{{ stats.pending }}</span>
-        <span class="stat-label">待处理</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-number">{{ stats.inProgress }}</span>
-        <span class="stat-label">进行中</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-number">{{ stats.completed }}</span>
-        <span class="stat-label">已完成</span>
-      </div>
-    </div>
 
     <!-- 加载状态 -->
     <div v-if="isLoading" class="loading-state">
@@ -123,8 +70,8 @@
     </div>
 
     <!-- 分页信息 -->
-    <div class="pagination-info" v-if="filteredTasks.length > 0">
-      共 {{ filteredTasks.length }} 条记录，每页 {{ pageSize }} 条，第 {{ currentPage }} / {{ totalPages }} 页
+    <div class="pagination-info" v-if="tasks.length > 0">
+      共 {{ tasks.length }} 条记录，每页 {{ pageSize }} 条，第 {{ currentPage }} / {{ totalPages }} 页
     </div>
   </div>
 </template>
@@ -151,9 +98,6 @@ const { user, isLoggedIn } = useAuth()
 const tasks = ref<Task[]>([])
 const currentPage = ref(1)
 const pageSize = ref(6)
-const statusFilter = ref('')
-const priorityFilter = ref('')
-const searchQuery = ref('')
 const isLoading = ref(false)
 const error = ref('')
 
@@ -195,38 +139,14 @@ const fetchTasks = async () => {
 }
 
 // 计算属性
-const filteredTasks = computed(() => {
-  let filtered = [...tasks.value]
-  
-  // 状态筛选
-  if (statusFilter.value) {
-    filtered = filtered.filter(task => task.status.toString() === statusFilter.value)
-  }
-  
-  // 优先级筛选
-  if (priorityFilter.value) {
-    filtered = filtered.filter(task => task.priority.toString() === priorityFilter.value)
-  }
-  
-  // 搜索筛选
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(task => 
-      task.title.toLowerCase().includes(query)
-    )
-  }
-  
-  return filtered
-})
-
 const totalPages = computed(() => {
-  return Math.ceil(filteredTasks.value.length / pageSize.value)
+  return Math.ceil(tasks.value.length / pageSize.value)
 })
 
 const paginatedTasks = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
-  return filteredTasks.value.slice(start, end)
+  return tasks.value.slice(start, end)
 })
 
 const visiblePages = computed(() => {
@@ -257,20 +177,9 @@ const visiblePages = computed(() => {
   return [...new Set(rangeWithDots)]
 })
 
-// 统计信息
-const stats = computed(() => {
-  const total = tasks.value.length
-  const pending = tasks.value.filter(task => task.status === 1).length
-  const inProgress = tasks.value.filter(task => task.status === 2).length
-  const completed = tasks.value.filter(task => task.status === 3).length
-  
-  return { total, pending, inProgress, completed }
-})
+
 
 // 方法
-const applyFilters = () => {
-  currentPage.value = 1
-}
 
 const prevPage = () => {
   if (currentPage.value > 1) {
@@ -335,78 +244,7 @@ onMounted(() => {
   margin: 0;
 }
 
-.filters {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 24px;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  flex-wrap: wrap;
-  justify-content: flex-start;
-}
 
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 200px;
-  max-width: 250px;
-  flex: 0 1 auto;
-}
-
-.filter-group label {
-  font-weight: 500;
-  color: #374151;
-  font-size: 14px;
-}
-
-.filter-group select,
-.search-input {
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: border-color 0.2s;
-}
-
-.filter-group select:focus,
-.search-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 280px));
-  gap: 16px;
-  margin-bottom: 24px;
-  justify-content: center;
-}
-
-.stat-item {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.stat-number {
-  display: block;
-  font-size: 32px;
-  font-weight: 700;
-  color: #3b82f6;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: #6b7280;
-  font-weight: 500;
-}
 
 .task-list {
   margin-bottom: 32px;
@@ -575,19 +413,6 @@ onMounted(() => {
 @media (max-width: 768px) {
   .task-list-container {
     padding: 16px;
-  }
-  
-  .filters {
-    flex-direction: column;
-    gap: 16px;
-  }
-  
-  .filter-group {
-    min-width: auto;
-  }
-  
-  .stats {
-    grid-template-columns: repeat(2, 1fr);
   }
   
   .pagination {
