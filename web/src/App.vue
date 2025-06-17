@@ -1,9 +1,25 @@
 <script setup lang="ts">
-// App组件现在通过路由来管理页面
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import NavBar from './components/NavBar.vue'
+import { useAuth } from './composables/useAuth'
+
+const route = useRoute()
+const { isLoggedIn } = useAuth()
+
+// 不需要显示导航栏的页面
+const hideNavbarRoutes = ['/login', '/register']
+const shouldShowNavbar = computed(() => {
+  return isLoggedIn.value && !hideNavbarRoutes.includes(route.path)
+})
 </script>
 
 <template>
   <div id="app">
+    <!-- 在需要时显示导航栏 -->
+    <NavBar v-if="shouldShowNavbar" />
+    
+    <!-- 路由视图 -->
     <router-view />
   </div>
 </template>

@@ -223,7 +223,7 @@ onMounted(() => {
   margin: 0 auto;
   padding: 20px;
   background: #f8fafc;
-  min-height: 100vh;
+  min-height: calc(100vh - 64px); /* 减去导航栏高度 */
 }
 
 .page-header {
