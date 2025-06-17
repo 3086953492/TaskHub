@@ -9,6 +9,7 @@ import common from '@ohos.app.ability.common';
 struct UserProfile {
   @State userInfo: UserInfoData | null = null;
   @State isLoading: boolean = true;
+  @State avatarLoadFailed: boolean = false;
   private context: common.UIAbilityContext = getContext(this) as common.UIAbilityContext;
 
   async aboutToAppear() {
@@ -25,6 +26,7 @@ struct UserProfile {
   async loadUserInfo() {
     try {
       this.isLoading = true;
+      this.avatarLoadFailed = false; // 重置头像加载状态
       const userInfo = await StorageUtil.getUserInfo();
       this.userInfo = userInfo;
       console.info('获取到的用户信息：', JSON.stringify(userInfo));
@@ -90,6 +92,28 @@ struct UserProfile {
       .fontWeight(FontWeight.Bold)
   }
 
+  // 构建头像组件
+  @Builder
+  buildAvatar() {
+    if (this.userInfo?.avatar && !this.avatarLoadFailed) {
+      // 如果有头像URL且加载未失败，显示网络图片
+      Image(this.userInfo.avatar)
+        .width(80)
+        .height(80)
+        .borderRadius(40)
+        .objectFit(ImageFit.Cover)
+        .onError(() => {
+          console.error('头像加载失败：', this.userInfo?.avatar);
+          this.avatarLoadFailed = true; // 设置加载失败状态
+        })
+    } else {
+      // 没有头像URL或加载失败时显示首字母头像
+      Circle({ width: 80, height: 80 })
+        .fill('#007DFF')
+        .overlay(this.buildAvatarText())
+    }
+  }
+
   build() {
     Column() {
       // 内容区域
@@ -141,9 +165,7 @@ struct UserProfile {
             // 头像和基本信息
             Column({ space: 16 }) {
               // 头像
-              Circle({ width: 80, height: 80 })
-                .fill('#007DFF')
-                .overlay(this.buildAvatarText())
+              this.buildAvatar()
 
               // 用户名和昵称
               Column({ space: 8 }) {
