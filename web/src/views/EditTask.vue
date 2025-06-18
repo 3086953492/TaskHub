@@ -143,15 +143,37 @@
           <!-- 图片更新表单 -->
           <div v-if="updatingImageIndex !== null" class="update-image-form">
             <h4>更新图片</h4>
-            <div class="form-group">
-              <label>新图片URL</label>
+            
+            <!-- 图片上传控件 -->
+            <div class="upload-control">
               <input
-                v-model="updateImageForm.url"
-                type="url"
-                placeholder="请输入新图片URL"
-                class="form-input"
+                ref="updateImageInput"
+                type="file"
+                accept="image/jpeg,image/png,image/gif"
+                @change="handleUpdateImageSelect"
+                style="display: none"
               />
+              
+              <button 
+                type="button" 
+                @click="triggerUpdateImageUpload" 
+                class="upload-btn"
+                :disabled="isSubmitting || updateImageUploadProgress !== null"
+              >
+                <span class="btn-icon">📷</span>
+                <span>选择新图片</span>
+              </button>
+              
+              <div v-if="updateImageUploadProgress !== null" class="upload-progress">
+                上传中... {{ updateImageUploadProgress }}%
+              </div>
             </div>
+
+            <!-- 新图片预览 -->
+            <div v-if="updateImageForm.url" class="update-image-preview">
+              <img :src="updateImageForm.url" alt="新图片预览" class="image-preview" />
+            </div>
+            
             <div class="form-group">
               <label>排序值</label>
               <input
@@ -163,7 +185,14 @@
               />
             </div>
             <div class="form-actions">
-              <button type="button" @click="confirmUpdateImage" class="confirm-btn">确认更新</button>
+              <button 
+                type="button" 
+                @click="confirmUpdateImage" 
+                class="confirm-btn"
+                :disabled="!updateImageForm.url"
+              >
+                确认更新
+              </button>
               <button type="button" @click="cancelUpdateImage" class="cancel-btn">取消</button>
             </div>
           </div>
@@ -171,29 +200,52 @@
           <!-- 添加新图片 -->
           <div class="add-images-section">
             <h4>添加新图片</h4>
-            <div v-for="(newImage, index) in formData.add_images" :key="index" class="new-image-item">
-              <div class="form-group">
-                <label>图片URL</label>
-                <input
-                  v-model="newImage.url"
-                  type="url"
-                  placeholder="请输入图片URL"
-                  class="form-input"
-                />
+            
+            <!-- 图片上传控件 -->
+            <div class="upload-control">
+              <input
+                ref="imageInput"
+                type="file"
+                accept="image/jpeg,image/png,image/gif"
+                @change="handleImageSelect"
+                style="display: none"
+                multiple
+              />
+              
+              <button 
+                type="button" 
+                @click="triggerImageUpload" 
+                class="upload-btn"
+                :disabled="isSubmitting || imageUploadProgress !== null"
+              >
+                <span class="btn-icon">📷</span>
+                <span>上传图片</span>
+              </button>
+              
+              <div v-if="imageUploadProgress !== null" class="upload-progress">
+                上传中... {{ imageUploadProgress }}%
               </div>
-              <div class="form-group">
-                <label>排序值</label>
-                <input
-                  v-model="newImage.sort_order"
-                  type="number"
-                  min="1"
-                  placeholder="排序值"
-                  class="form-input"
-                />
-              </div>
-              <button type="button" @click="removeNewImage(index)" class="remove-btn">移除</button>
             </div>
-            <button type="button" @click="addNewImage" class="add-btn">+ 添加图片</button>
+
+            <!-- 新上传的图片预览 -->
+            <div v-if="formData.add_images.length > 0" class="new-images-preview">
+              <div v-for="(newImage, index) in formData.add_images" :key="index" class="new-image-item">
+                <img :src="newImage.url" :alt="`新图片 ${index + 1}`" class="image-preview" />
+                <div class="image-info">
+                  <div class="form-group">
+                    <label>排序值</label>
+                    <input
+                      v-model="newImage.sort_order"
+                      type="number"
+                      min="1"
+                      placeholder="排序值"
+                      class="form-input small"
+                    />
+                  </div>
+                </div>
+                <button type="button" @click="removeNewImage(index)" class="remove-btn">×</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -218,19 +270,40 @@
           <!-- 备注图片 -->
           <div class="remark-images-section">
             <h4>备注图片</h4>
-            <div v-for="(remarkImage, index) in formData.remark_images" :key="index" class="remark-image-item">
-              <div class="form-group">
-                <label>图片URL</label>
-                <input
-                  v-model="remarkImage.url"
-                  type="url"
-                  placeholder="请输入备注图片URL"
-                  class="form-input"
-                />
+            
+            <!-- 备注图片上传控件 -->
+            <div class="upload-control">
+              <input
+                ref="remarkImageInput"
+                type="file"
+                accept="image/jpeg,image/png,image/gif"
+                @change="handleRemarkImageSelect"
+                style="display: none"
+                multiple
+              />
+              
+              <button 
+                type="button" 
+                @click="triggerRemarkImageUpload" 
+                class="upload-btn"
+                :disabled="isSubmitting || remarkImageUploadProgress !== null"
+              >
+                <span class="btn-icon">📷</span>
+                <span>上传备注图片</span>
+              </button>
+              
+              <div v-if="remarkImageUploadProgress !== null" class="upload-progress">
+                上传中... {{ remarkImageUploadProgress }}%
               </div>
-              <button type="button" @click="removeRemarkImage(index)" class="remove-btn">移除</button>
             </div>
-            <button type="button" @click="addRemarkImage" class="add-btn">+ 添加备注图片</button>
+
+            <!-- 备注图片预览 -->
+            <div v-if="formData.remark_images.length > 0" class="remark-images-preview">
+              <div v-for="(remarkImage, index) in formData.remark_images" :key="index" class="remark-image-item">
+                <img :src="remarkImage.url" :alt="`备注图片 ${index + 1}`" class="image-preview" />
+                <button type="button" @click="removeRemarkImage(index)" class="remove-btn">×</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -258,6 +331,7 @@ import { ref, onMounted, computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getTaskDetail, updateTask, PRIORITY_OPTIONS, type TaskDetail, type UpdateTaskParams } from '../api/task'
 import { useAuth } from '../composables/useAuth'
+import { uploadImage, getImageUrl } from '../api/upload'
 
 const route = useRoute()
 const router = useRouter()
@@ -269,6 +343,14 @@ const error = ref('')
 const taskDetail = ref<TaskDetail | null>(null)
 const isSubmitting = ref(false)
 const showSuccessMessage = ref(false)
+
+// 图片上传相关状态
+const imageUploadProgress = ref<number | null>(null)
+const imageInput = ref<HTMLInputElement>()
+const updateImageUploadProgress = ref<number | null>(null)
+const updateImageInput = ref<HTMLInputElement>()
+const remarkImageUploadProgress = ref<number | null>(null)
+const remarkImageInput = ref<HTMLInputElement>()
 
 // 图片更新相关
 const updatingImageIndex = ref<number | null>(null)
@@ -352,14 +434,69 @@ const resetForm = () => {
   if (formData.remark_images) formData.remark_images = []
 }
 
-// 添加新图片
-const addNewImage = () => {
-  if (!formData.add_images) formData.add_images = []
-  formData.add_images.push({
-    url: '',
-    sort_order: formData.add_images.length + 1
-  })
+// 触发图片上传
+const triggerImageUpload = () => {
+  imageInput.value?.click()
 }
+
+// 处理图片选择
+const handleImageSelect = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const files = target.files
+  
+  if (!files || files.length === 0) return
+  
+  // 上传所有选中的图片
+  for (let i = 0; i < files.length; i++) {
+    await uploadTaskImage(files[i])
+  }
+  
+  // 清空input
+  if (imageInput.value) {
+    imageInput.value.value = ''
+  }
+}
+
+// 上传单个图片
+const uploadTaskImage = async (file: File) => {
+  imageUploadProgress.value = 0
+  
+  try {
+    // 模拟上传进度
+    const progressInterval = setInterval(() => {
+      if (imageUploadProgress.value !== null && imageUploadProgress.value < 90) {
+        imageUploadProgress.value += 10
+      }
+    }, 100)
+    
+    const response = await uploadImage(file)
+    
+    clearInterval(progressInterval)
+    imageUploadProgress.value = 100
+    
+    if (response.code === 200 && response.data) {
+      const imageUrl = getImageUrl(response.data.path)
+      
+      if (!formData.add_images) formData.add_images = []
+      formData.add_images.push({ 
+        url: imageUrl, 
+        sort_order: formData.add_images.length + 1 
+      })
+      
+      setTimeout(() => {
+        imageUploadProgress.value = null
+      }, 500)
+    } else {
+      throw new Error(response.msg || '图片上传失败')
+    }
+  } catch (err) {
+    imageUploadProgress.value = null
+    const errorMessage = err instanceof Error ? err.message : '图片上传失败'
+    alert(`上传失败: ${errorMessage}`)
+  }
+}
+
+
 
 // 移除新图片
 const removeNewImage = (index: number) => {
@@ -368,10 +505,63 @@ const removeNewImage = (index: number) => {
   }
 }
 
-// 添加备注图片
-const addRemarkImage = () => {
-  if (!formData.remark_images) formData.remark_images = []
-  formData.remark_images.push({ url: '' })
+// 触发备注图片上传
+const triggerRemarkImageUpload = () => {
+  remarkImageInput.value?.click()
+}
+
+// 处理备注图片选择
+const handleRemarkImageSelect = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const files = target.files
+  
+  if (!files || files.length === 0) return
+  
+  // 上传所有选中的图片
+  for (let i = 0; i < files.length; i++) {
+    await uploadRemarkImage(files[i])
+  }
+  
+  // 清空input
+  if (remarkImageInput.value) {
+    remarkImageInput.value.value = ''
+  }
+}
+
+// 上传备注图片
+const uploadRemarkImage = async (file: File) => {
+  remarkImageUploadProgress.value = 0
+  
+  try {
+    // 模拟上传进度
+    const progressInterval = setInterval(() => {
+      if (remarkImageUploadProgress.value !== null && remarkImageUploadProgress.value < 90) {
+        remarkImageUploadProgress.value += 10
+      }
+    }, 100)
+    
+    const response = await uploadImage(file)
+    
+    clearInterval(progressInterval)
+    remarkImageUploadProgress.value = 100
+    
+    if (response.code === 200 && response.data) {
+      const imageUrl = getImageUrl(response.data.path)
+      
+      if (!formData.remark_images) formData.remark_images = []
+      formData.remark_images.push({ url: imageUrl })
+      
+      setTimeout(() => {
+        remarkImageUploadProgress.value = null
+      }, 500)
+    } else {
+      throw new Error(response.msg || '图片上传失败')
+    }
+  } catch (err) {
+    remarkImageUploadProgress.value = null
+    const errorMessage = err instanceof Error ? err.message : '图片上传失败'
+    alert(`上传失败: ${errorMessage}`)
+  }
 }
 
 // 移除备注图片
@@ -386,6 +576,61 @@ const startUpdateImage = (image: any, index: number) => {
   updatingImageIndex.value = index
   updateImageForm.url = image.url
   updateImageForm.sort_order = image.sort_order || index + 1
+}
+
+// 触发更新图片上传
+const triggerUpdateImageUpload = () => {
+  updateImageInput.value?.click()
+}
+
+// 处理更新图片选择
+const handleUpdateImageSelect = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const files = target.files
+  
+  if (!files || files.length === 0) return
+  
+  // 只上传第一个选中的图片
+  await uploadUpdateImage(files[0])
+  
+  // 清空input
+  if (updateImageInput.value) {
+    updateImageInput.value.value = ''
+  }
+}
+
+// 上传更新图片
+const uploadUpdateImage = async (file: File) => {
+  updateImageUploadProgress.value = 0
+  
+  try {
+    // 模拟上传进度
+    const progressInterval = setInterval(() => {
+      if (updateImageUploadProgress.value !== null && updateImageUploadProgress.value < 90) {
+        updateImageUploadProgress.value += 10
+      }
+    }, 100)
+    
+    const response = await uploadImage(file)
+    
+    clearInterval(progressInterval)
+    updateImageUploadProgress.value = 100
+    
+    if (response.code === 200 && response.data) {
+      const imageUrl = getImageUrl(response.data.path)
+      updateImageForm.url = imageUrl
+      
+      setTimeout(() => {
+        updateImageUploadProgress.value = null
+      }, 500)
+    } else {
+      throw new Error(response.msg || '图片上传失败')
+    }
+  } catch (err) {
+    updateImageUploadProgress.value = null
+    const errorMessage = err instanceof Error ? err.message : '图片上传失败'
+    alert(`上传失败: ${errorMessage}`)
+  }
 }
 
 // 确认更新图片
@@ -757,19 +1002,97 @@ onMounted(() => {
   color: #374151;
 }
 
-/* 新图片和备注图片 */
-.new-image-item, .remark-image-item {
-  display: flex;
-  gap: 16px;
-  align-items: end;
-  margin-bottom: 16px;
-  padding: 16px;
-  background: #f9fafb;
-  border-radius: 8px;
+/* 图片上传控件 */
+.upload-control {
+  margin-bottom: 20px;
 }
 
-.new-image-item .form-group, .remark-image-item .form-group {
-  flex: 1;
+.upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.upload-btn:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.upload-btn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  font-size: 16px;
+}
+
+.upload-progress {
+  margin-top: 8px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* 新图片预览 */
+.new-images-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.new-image-item {
+  position: relative;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+.image-info {
+  padding: 8px;
+}
+
+.form-input.small {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+/* 备注图片 */
+.remark-images-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.remark-image-item {
+  position: relative;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+.remark-image-item .image-preview {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+}
+
+.update-image-preview {
+  margin-top: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 200px;
 }
 
 .add-btn, .remove-btn {
@@ -795,6 +1118,18 @@ onMounted(() => {
   background-color: #ef4444;
   color: white;
   height: fit-content;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 0;
 }
 
 .remove-btn:hover {
