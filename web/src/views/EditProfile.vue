@@ -84,19 +84,75 @@
           </div>
         </div>
 
-        <!-- 头像上传区域（暂时禁用） -->
-        <div class="form-section disabled">
+        <!-- 头像上传区域 -->
+        <div class="form-section">
           <h3>头像设置</h3>
-          <p class="section-tip">头像修改功能暂未开放</p>
+          <p class="section-tip">支持 JPEG、PNG、GIF 格式，文件大小不超过 5MB</p>
           
           <div class="avatar-upload-area">
             <div class="avatar-preview">
-              <div class="avatar-placeholder">
+              <img 
+                v-if="getCurrentAvatarUrl()" 
+                :src="getCurrentAvatarUrl()"
+                :alt="user?.nickname || user?.username"
+                class="avatar-image"
+              />
+              <div v-else class="avatar-placeholder">
                 {{ getAvatarText(user?.nickname || user?.username || '') }}
               </div>
+              
+              <!-- 上传进度遮罩 -->
+              <div v-if="uploadProgress !== null" class="upload-overlay">
+                <div class="upload-progress">
+                  <div class="progress-circle">
+                    <svg class="progress-ring" width="60" height="60">
+                      <circle
+                        class="progress-ring-circle"
+                        stroke="white"
+                        stroke-width="4"
+                        fill="transparent"
+                        r="26"
+                        cx="30"
+                        cy="30"
+                        :stroke-dasharray="163.36"
+                        :stroke-dashoffset="163.36 - (163.36 * uploadProgress) / 100"
+                      />
+                    </svg>
+                    <span class="progress-text">{{ uploadProgress }}%</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="upload-info">
-              <p>头像修改功能开发中...</p>
+            
+            <div class="upload-actions">
+              <input
+                ref="fileInput"
+                type="file"
+                accept="image/jpeg,image/png,image/gif"
+                @change="handleFileSelect"
+                style="display: none"
+              />
+              
+              <button 
+                type="button" 
+                @click="triggerFileUpload" 
+                class="upload-btn"
+                :disabled="isLoading || uploadProgress !== null"
+              >
+                <span class="btn-icon">📁</span>
+                <span>选择图片</span>
+              </button>
+              
+              <button 
+                v-if="showRemoveButton"
+                type="button" 
+                @click="removeAvatar" 
+                class="remove-btn"
+                :disabled="isLoading || uploadProgress !== null"
+              >
+                <span class="btn-icon">🗑️</span>
+                <span>移除头像</span>
+              </button>
             </div>
           </div>
         </div>
@@ -122,10 +178,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { updateUserInfo } from '../api/auth'
+import { uploadImage, getImageUrl, validateImageFile } from '../api/upload'
 import { message } from '../utils/message'
 
 const router = useRouter()
@@ -145,16 +202,134 @@ const form = reactive({
 const originalData = reactive({
   username: '',
   nickname: '',
-  email: ''
+  email: '',
+  avatar: ''
 })
 
 // 状态
 const isLoading = ref(false)
 const error = ref('')
 
+// 头像相关状态
+const avatarPreview = ref<string>('')
+const uploadProgress = ref<number | null>(null)
+const fileInput = ref<HTMLInputElement>()
+const newAvatarPath = ref<string>('')
+
+// 计算属性：是否有头像变化
+const hasAvatarChange = computed(() => {
+  return newAvatarPath.value !== '' || avatarPreview.value !== ''
+})
+
+// 计算属性：是否显示移除按钮
+const showRemoveButton = computed(() => {
+  // 有新上传的头像预览，或者用户原本有头像且没有标记移除
+  return avatarPreview.value || (user.value?.avatar && newAvatarPath.value !== 'REMOVE_AVATAR')
+})
+
 // 获取头像文字
 const getAvatarText = (name: string) => {
   return name.charAt(0).toUpperCase()
+}
+
+// 获取当前显示的头像URL
+const getCurrentAvatarUrl = (): string => {
+  // 如果标记移除头像，不显示任何图片
+  if (newAvatarPath.value === 'REMOVE_AVATAR') {
+    return ''
+  }
+  // 优先显示新上传的预览图
+  if (avatarPreview.value) {
+    return avatarPreview.value
+  }
+  // 如果用户原本有头像且没有被移除，显示原头像
+  if (user.value?.avatar && !newAvatarPath.value) {
+    return getImageUrl(user.value.avatar)
+  }
+  // 否则不显示图片
+  return ''
+}
+
+// 头像相关方法
+const triggerFileUpload = () => {
+  fileInput.value?.click()
+}
+
+const handleFileSelect = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  
+  if (!file) return
+  
+  // 验证文件
+  const validationError = validateImageFile(file)
+  if (validationError) {
+    error.value = validationError
+    return
+  }
+  
+  // 显示预览
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    avatarPreview.value = e.target?.result as string
+  }
+  reader.readAsDataURL(file)
+  
+  // 上传文件
+  uploadAvatarFile(file)
+}
+
+const uploadAvatarFile = async (file: File) => {
+  uploadProgress.value = 0
+  error.value = ''
+  
+  try {
+    // 模拟上传进度
+    const progressInterval = setInterval(() => {
+      if (uploadProgress.value !== null && uploadProgress.value < 90) {
+        uploadProgress.value += 10
+      }
+    }, 100)
+    
+    const response = await uploadImage(file)
+    
+    clearInterval(progressInterval)
+    uploadProgress.value = 100
+    
+    if (response.code === 200 && response.data) {
+      newAvatarPath.value = response.data.path
+      message.success('上传成功', '头像上传完成')
+      
+      // 延迟清除进度
+      setTimeout(() => {
+        uploadProgress.value = null
+      }, 500)
+    } else {
+      throw new Error(response.msg || '上传失败')
+    }
+  } catch (err) {
+    uploadProgress.value = null
+    avatarPreview.value = ''
+    newAvatarPath.value = ''
+    
+    const errorMessage = err instanceof Error ? err.message : '上传失败'
+    error.value = errorMessage
+    message.error('上传失败', errorMessage)
+  }
+}
+
+const removeAvatar = () => {
+  // 如果有新上传的头像，清除预览和新路径
+  if (avatarPreview.value || newAvatarPath.value) {
+    avatarPreview.value = ''
+    newAvatarPath.value = ''
+    if (fileInput.value) {
+      fileInput.value.value = ''
+    }
+  } else if (user.value?.avatar) {
+    // 如果要移除原有头像，设置移除标记
+    newAvatarPath.value = 'REMOVE_AVATAR'
+  }
 }
 
 // 初始化表单数据
@@ -168,6 +343,7 @@ const initForm = () => {
     originalData.username = user.value.username || ''
     originalData.nickname = user.value.nickname || ''
     originalData.email = user.value.email || ''
+    originalData.avatar = user.value.avatar || ''
   }
 }
 
@@ -230,6 +406,15 @@ const getChangedFields = () => {
     changes.email = form.email
   }
 
+  // 检查头像是否有修改
+  if (newAvatarPath.value === 'REMOVE_AVATAR') {
+    // 如果标记移除头像，传空字符串
+    changes.avatar = ''
+  } else if (newAvatarPath.value && newAvatarPath.value !== 'REMOVE_AVATAR') {
+    // 如果有新上传的头像，使用完整URL
+    changes.avatar = getImageUrl(newAvatarPath.value)
+  }
+
   // 检查是否要修改密码
   if (form.newPassword) {
     changes.password = form.newPassword
@@ -286,7 +471,19 @@ const handleSubmit = async () => {
 
 // 取消编辑
 const handleCancel = () => {
+  // 恢复头像状态
+  resetAvatarState()
   router.back()
+}
+
+// 重置头像状态
+const resetAvatarState = () => {
+  avatarPreview.value = ''
+  newAvatarPath.value = ''
+  uploadProgress.value = null
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
 }
 
 // 生命周期
@@ -397,7 +594,7 @@ onMounted(() => {
 
 .avatar-upload-area {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
 }
 
@@ -407,6 +604,14 @@ onMounted(() => {
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
+  position: relative;
+  border: 3px solid #e5e7eb;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .avatar-placeholder {
@@ -421,9 +626,91 @@ onMounted(() => {
   font-weight: 700;
 }
 
-.upload-info p {
-  color: #6b7280;
-  margin: 0;
+.upload-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.upload-progress {
+  position: relative;
+}
+
+.progress-circle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-ring {
+  transform: rotate(-90deg);
+}
+
+.progress-ring-circle {
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.progress-text {
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.upload-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.upload-btn,
+.remove-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.upload-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.upload-btn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.upload-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.remove-btn {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.remove-btn:hover:not(:disabled) {
+  background: #fecaca;
+}
+
+.remove-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .error-message {

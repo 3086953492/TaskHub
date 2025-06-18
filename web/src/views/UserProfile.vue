@@ -13,7 +13,7 @@
           <div class="avatar-container">
             <img 
               v-if="user?.avatar" 
-              :src="user.avatar" 
+              :src="getImageUrl(user.avatar)" 
               :alt="user.nickname || user.username"
               class="avatar-image"
             />
@@ -126,6 +126,7 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
+import { getImageUrl } from '../api/upload'
 
 const router = useRouter()
 const { user, logout } = useAuth()
