@@ -18,6 +18,15 @@
             <span class="nav-icon">📋</span>
             <span>任务列表</span>
           </router-link>
+
+          <router-link 
+            to="/my-tasks" 
+            class="nav-link"
+            :class="{ active: $route.path === '/my-tasks' }"
+          >
+            <span class="nav-icon">📝</span>
+            <span>我的任务</span>
+          </router-link>
           
           <router-link 
             to="/profile" 
@@ -57,6 +66,15 @@
         >
           <span class="nav-icon">📋</span>
           <span>任务列表</span>
+        </router-link>
+
+        <router-link 
+          to="/my-tasks" 
+          class="mobile-nav-link"
+          @click="closeMobileMenu"
+        >
+          <span class="nav-icon">📝</span>
+          <span>我的任务</span>
         </router-link>
         
         <router-link 

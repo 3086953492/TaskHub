@@ -31,6 +31,16 @@
             <span class="btn-icon">←</span>
             <span>返回</span>
           </button>
+          
+          <!-- 状态变更按钮 -->
+          <button 
+            v-if="hasStatusChangePermission" 
+            @click="openStatusChangeModal" 
+            class="status-change-btn"
+          >
+            <span class="btn-icon">🔄</span>
+            <span>变更状态</span>
+          </button>
         </div>
         
         <div class="header-title">
@@ -323,13 +333,105 @@
       <div class="success-icon">✅</div>
       <p>任务更新成功！</p>
     </div>
+
+    <!-- 状态变更模态框 -->
+    <div v-if="showStatusChangeModal" class="modal-overlay" @click="closeStatusChangeModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>变更任务状态</h3>
+          <button @click="closeStatusChangeModal" class="close-btn">×</button>
+        </div>
+        
+        <div class="modal-body">
+          <!-- 当前状态显示 -->
+          <div class="current-status">
+            <label>当前状态：</label>
+            <span 
+              class="status-badge" 
+              :style="{ backgroundColor: STATUS_OPTIONS.find(s => s.value === taskDetail?.status)?.color }"
+            >
+              {{ STATUS_OPTIONS.find(s => s.value === taskDetail?.status)?.label }}
+            </span>
+          </div>
+
+          <!-- 新状态选择 -->
+          <div class="form-group">
+            <label for="new-status">选择新状态</label>
+            <select id="new-status" v-model="statusChangeForm.status" class="form-select">
+              <option :value="2">进行中</option>
+              <option :value="3">已完成</option>
+              <option :value="4">已取消</option>
+            </select>
+          </div>
+
+          <!-- 备注文字 -->
+          <div class="form-group">
+            <label for="status-remark">状态变更备注</label>
+            <textarea
+              id="status-remark"
+              v-model="statusChangeForm.remark"
+              rows="3"
+              placeholder="请输入状态变更原因或备注信息"
+              class="form-textarea"
+            ></textarea>
+          </div>
+
+          <!-- 备注图片上传 -->
+          <div class="form-group">
+            <label>备注图片</label>
+            
+            <!-- 图片上传控件 -->
+            <div class="upload-control">
+              <input
+                ref="statusChangeImageInput"
+                type="file"
+                accept="image/jpeg,image/png,image/gif"
+                @change="handleStatusChangeImageSelect"
+                style="display: none"
+                multiple
+              />
+              
+              <button 
+                type="button" 
+                @click="triggerStatusChangeImageUpload" 
+                class="upload-btn small"
+                :disabled="statusChangeUploadProgress !== null"
+              >
+                <span class="btn-icon">📷</span>
+                <span>上传图片</span>
+              </button>
+              
+              <div v-if="statusChangeUploadProgress !== null" class="upload-progress">
+                上传中... {{ statusChangeUploadProgress }}%
+              </div>
+            </div>
+
+            <!-- 图片预览 -->
+            <div v-if="statusChangeForm.remark_images.length > 0" class="status-images-preview">
+              <div v-for="(image, index) in statusChangeForm.remark_images" :key="index" class="status-image-item">
+                <img :src="image.url" :alt="`备注图片 ${index + 1}`" class="image-preview" />
+                <button type="button" @click="removeStatusChangeImage(index)" class="remove-btn">×</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button @click="closeStatusChangeModal" class="cancel-btn">取消</button>
+          <button @click="handleStatusChange" :disabled="isSubmitting" class="confirm-btn">
+            <span v-if="isSubmitting">提交中...</span>
+            <span v-else>确认变更</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getTaskDetail, updateTask, PRIORITY_OPTIONS, type TaskDetail, type UpdateTaskParams } from '../api/task'
+import { getTaskDetail, updateTask, updateTaskStatus, PRIORITY_OPTIONS, STATUS_OPTIONS, type TaskDetail, type UpdateTaskParams, type UpdateTaskStatusParams } from '../api/task'
 import { useAuth } from '../composables/useAuth'
 import { uploadImage, getImageUrl } from '../api/upload'
 
@@ -359,6 +461,16 @@ const updateImageForm = reactive({
   sort_order: 1
 })
 
+// 状态变更相关
+const showStatusChangeModal = ref(false)
+const statusChangeForm = reactive({
+  status: 2,
+  remark: '',
+  remark_images: [] as Array<{url: string}>
+})
+const statusChangeUploadProgress = ref<number | null>(null)
+const statusChangeImageInput = ref<HTMLInputElement>()
+
 // 表单数据
 const formData = reactive({
   update_task_info: {
@@ -375,10 +487,18 @@ const formData = reactive({
   remark_images: [] as Array<{url: string}>
 })
 
-// 权限检查
+// 权限检查 - 编辑权限
 const hasEditPermission = computed(() => {
   if (!taskDetail.value || !user.value) return false
   return isAdmin.value || taskDetail.value.creator_id === user.value.id
+})
+
+// 权限检查 - 状态变更权限（认领人、管理员、创建者都可以）
+const hasStatusChangePermission = computed(() => {
+  if (!taskDetail.value || !user.value) return false
+  return isAdmin.value || 
+         taskDetail.value.creator_id === user.value.id ||
+         taskDetail.value.assignee_id === user.value.id
 })
 
 // 获取任务详情
@@ -761,6 +881,121 @@ const goBack = () => {
   router.go(-1)
 }
 
+// 状态变更相关方法
+const openStatusChangeModal = () => {
+  if (!taskDetail.value) return
+  statusChangeForm.status = 2 // 默认选择"进行中"
+  statusChangeForm.remark = ''
+  statusChangeForm.remark_images = []
+  showStatusChangeModal.value = true
+}
+
+const closeStatusChangeModal = () => {
+  showStatusChangeModal.value = false
+}
+
+// 触发状态变更图片上传
+const triggerStatusChangeImageUpload = () => {
+  statusChangeImageInput.value?.click()
+}
+
+// 处理状态变更图片选择
+const handleStatusChangeImageSelect = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const files = target.files
+  
+  if (!files || files.length === 0) return
+  
+  // 上传所有选中的图片
+  for (let i = 0; i < files.length; i++) {
+    await uploadStatusChangeImage(files[i])
+  }
+  
+  // 清空input
+  if (statusChangeImageInput.value) {
+    statusChangeImageInput.value.value = ''
+  }
+}
+
+// 上传状态变更图片
+const uploadStatusChangeImage = async (file: File) => {
+  statusChangeUploadProgress.value = 0
+  
+  try {
+    // 模拟上传进度
+    const progressInterval = setInterval(() => {
+      if (statusChangeUploadProgress.value !== null && statusChangeUploadProgress.value < 90) {
+        statusChangeUploadProgress.value += 10
+      }
+    }, 100)
+    
+    const response = await uploadImage(file)
+    
+    clearInterval(progressInterval)
+    statusChangeUploadProgress.value = 100
+    
+    if (response.code === 200 && response.data) {
+      const imageUrl = getImageUrl(response.data.path)
+      statusChangeForm.remark_images.push({ url: imageUrl })
+      
+      setTimeout(() => {
+        statusChangeUploadProgress.value = null
+      }, 500)
+    } else {
+      throw new Error(response.msg || '图片上传失败')
+    }
+  } catch (err) {
+    statusChangeUploadProgress.value = null
+    const errorMessage = err instanceof Error ? err.message : '图片上传失败'
+    alert(`上传失败: ${errorMessage}`)
+  }
+}
+
+// 移除状态变更图片
+const removeStatusChangeImage = (index: number) => {
+  statusChangeForm.remark_images.splice(index, 1)
+}
+
+// 提交状态变更
+const handleStatusChange = async () => {
+  if (!taskDetail.value) return
+
+  try {
+    isSubmitting.value = true
+    
+    const submitData: UpdateTaskStatusParams = {
+      status: statusChangeForm.status
+    }
+    
+    if (statusChangeForm.remark.trim()) {
+      submitData.remark = statusChangeForm.remark.trim()
+    }
+    
+    if (statusChangeForm.remark_images.length > 0) {
+      submitData.remark_images = statusChangeForm.remark_images.filter(img => img.url)
+    }
+
+    const response = await updateTaskStatus(taskDetail.value.task_id, submitData)
+    
+    if (response.code === 200) {
+      showSuccessMessage.value = true
+      closeStatusChangeModal()
+      
+      setTimeout(() => {
+        showSuccessMessage.value = false
+        // 重新获取任务详情以刷新状态
+        fetchTaskDetail()
+      }, 2000)
+    } else {
+      alert(response.msg || '状态更新失败')
+    }
+  } catch (err: any) {
+    alert(err.message || '网络错误，请重试')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
 // 组件挂载时获取任务详情
 onMounted(() => {
   fetchTaskDetail()
@@ -821,6 +1056,23 @@ onMounted(() => {
 
 .retry-btn:hover, .back-btn:hover {
   background-color: #2563eb;
+}
+
+.status-change-btn {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.status-change-btn:hover {
+  background-color: #059669;
 }
 
 /* 页面头部 */
@@ -1030,6 +1282,11 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
+.upload-btn.small {
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
 .btn-icon {
   font-size: 16px;
 }
@@ -1229,6 +1486,122 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
+/* 模态框样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #f3f4f6;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* 状态相关样式 */
+.current-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+}
+
+.current-status label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 16px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-images-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.status-image-item {
+  position: relative;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+  background: white;
+}
+
+.status-image-item .image-preview {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .edit-task-container {
@@ -1250,6 +1623,20 @@ onMounted(() => {
   
   .submit-btn {
     max-width: none;
+  }
+
+  .modal-content {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .modal-header, .modal-body, .modal-footer {
+    padding: 16px;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    gap: 8px;
   }
 }
 </style> 

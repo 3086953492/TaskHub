@@ -196,4 +196,24 @@ export const updateTask = async (taskId: number, params: UpdateTaskParams): Prom
     console.error('更新任务失败:', error)
     throw error
   }
+}
+
+// 状态变更参数接口
+export interface UpdateTaskStatusParams {
+  status: number
+  remark?: string
+  remark_images?: Array<{
+    url: string
+  }>
+}
+
+// 更新任务状态
+export const updateTaskStatus = async (taskId: number, params: UpdateTaskStatusParams): Promise<ApiResponse<null>> => {
+  try {
+    const response = await http.patch<ApiResponse<null>>(`/task/status/${taskId}`, params)
+    return response.data
+  } catch (error) {
+    console.error('更新任务状态失败:', error)
+    throw error
+  }
 } 
