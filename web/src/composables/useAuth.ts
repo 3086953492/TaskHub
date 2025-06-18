@@ -59,7 +59,7 @@ export const useAuth = () => {
 
   // 获取认证头
   const getAuthHeader = () => {
-    return token.value ? { Authorization: `Bearer ${token.value}` } : {}
+    return token.value ? { Authorization: `${token.value}` } : {}
   }
 
   return {

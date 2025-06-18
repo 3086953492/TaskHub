@@ -1,7 +1,5 @@
 import type { ApiResponse } from '../types/task'
-
-// API基础URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+import { http } from '../utils/http'
 
 // 用户信息接口
 export interface User {
@@ -40,53 +38,59 @@ export interface RegisterResponse {
 
 // 用户登录
 export const loginUser = async (params: LoginParams): Promise<ApiResponse<LoginResponse>> => {
-  const response = await fetch(`${API_BASE_URL}/user/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(params),
-  })
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
+  try {
+    const response = await http.post<ApiResponse<LoginResponse>>('/user/login', params, {
+      needAuth: false // 登录请求不需要token
+    })
+    return response.data
+  } catch (error) {
+    console.error('登录失败:', error)
+    throw error
   }
-
-  return await response.json()
 }
 
 // 用户注册
 export const registerUser = async (params: RegisterParams): Promise<ApiResponse<RegisterResponse>> => {
-  const response = await fetch(`${API_BASE_URL}/user/register`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(params),
-  })
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
+  try {
+    const response = await http.post<ApiResponse<RegisterResponse>>('/user/register', params, {
+      needAuth: false // 注册请求不需要token
+    })
+    return response.data
+  } catch (error) {
+    console.error('注册失败:', error)
+    throw error
   }
-
-  return await response.json()
 }
 
 // 刷新令牌
 export const refreshToken = async (): Promise<ApiResponse<{ token: string }>> => {
-  const token = localStorage.getItem('token')
-  
-  const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
+  try {
+    const response = await http.post<ApiResponse<{ token: string }>>('/auth/refresh')
+    return response.data
+  } catch (error) {
+    console.error('刷新token失败:', error)
+    throw error
   }
+}
 
-  return await response.json()
+// 获取用户信息
+export const getUserInfo = async (): Promise<ApiResponse<User>> => {
+  try {
+    const response = await http.get<ApiResponse<User>>('/user/info')
+    return response.data
+  } catch (error) {
+    console.error('获取用户信息失败:', error)
+    throw error
+  }
+}
+
+// 更新用户信息
+export const updateUserInfo = async (params: Partial<User>): Promise<ApiResponse<User>> => {
+  try {
+    const response = await http.put<ApiResponse<User>>('/user/info', params)
+    return response.data
+  } catch (error) {
+    console.error('更新用户信息失败:', error)
+    throw error
+  }
 } 

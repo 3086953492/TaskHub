@@ -1,7 +1,5 @@
 import type { ApiResponse } from '../types/task'
-
-// API基础URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+import { http } from '../utils/http'
 
 // 任务列表查询参数
 export interface TaskListParams {
@@ -23,32 +21,18 @@ export interface TaskListItem {
 
 // 获取任务列表
 export const getTaskList = async (params: TaskListParams): Promise<ApiResponse<TaskListItem[]>> => {
-  const token = localStorage.getItem('token')
-  
-  // 构建查询参数
-  const searchParams = new URLSearchParams()
-  searchParams.append('page', params.page.toString())
-  searchParams.append('page_size', params.page_size.toString())
-  
-  if (params.assignee_id !== undefined) {
-    searchParams.append('assignee_id', params.assignee_id.toString())
+  try {
+    const response = await http.get<ApiResponse<TaskListItem[]>>('/task', {
+      params: {
+        page: params.page,
+        page_size: params.page_size,
+        ...(params.assignee_id !== undefined && { assignee_id: params.assignee_id }),
+        ...(params.creator_id !== undefined && { creator_id: params.creator_id })
+      }
+    })
+    return response.data
+  } catch (error) {
+    console.error('获取任务列表失败:', error)
+    throw error
   }
-  
-  if (params.creator_id !== undefined) {
-    searchParams.append('creator_id', params.creator_id.toString())
-  }
-
-  const response = await fetch(`${API_BASE_URL}/task?${searchParams.toString()}`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `${token}`,
-      'Content-Type': 'application/json',
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
-  }
-
-  return await response.json()
 } 
