@@ -1,5 +1,4 @@
 import type { ApiResponse } from '../types/task'
-import { http } from '../utils/http'
 
 // 图片上传响应接口
 export interface UploadImageResponse {

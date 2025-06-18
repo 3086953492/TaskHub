@@ -81,7 +81,6 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import TaskItem from './TaskItem.vue'
 import { getTaskList } from '../api/task'
-import type { TaskListItem } from '../api/task'
 import { useAuth } from '../composables/useAuth'
 
 interface Task {

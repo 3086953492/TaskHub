@@ -216,11 +216,6 @@ const uploadProgress = ref<number | null>(null)
 const fileInput = ref<HTMLInputElement>()
 const newAvatarPath = ref<string>('')
 
-// 计算属性：是否有头像变化
-const hasAvatarChange = computed(() => {
-  return newAvatarPath.value !== '' || avatarPreview.value !== ''
-})
-
 // 计算属性：是否显示移除按钮
 const showRemoveButton = computed(() => {
   // 有新上传的头像预览，或者用户原本有头像且没有标记移除
