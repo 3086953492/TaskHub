@@ -25,7 +25,6 @@
         >
           <span class="tab-icon">📋</span>
           <span>我认领的任务</span>
-          <span v-if="assignedCount > 0" class="task-count">{{ assignedCount }}</span>
         </button>
         <button 
           @click="activeTab = 'created'" 
@@ -33,21 +32,7 @@
         >
           <span class="tab-icon">✏️</span>
           <span>我发布的任务</span>
-          <span v-if="createdCount > 0" class="task-count">{{ createdCount }}</span>
         </button>
-      </div>
-    </div>
-
-    <!-- 状态筛选 -->
-    <div class="filter-container">
-      <div class="filter-section">
-        <label for="status-filter">状态筛选：</label>
-        <select id="status-filter" v-model="statusFilter" class="status-select">
-          <option :value="0">全部状态</option>
-          <option v-for="status in STATUS_OPTIONS" :key="status.value" :value="status.value">
-            {{ status.label }}
-          </option>
-        </select>
       </div>
     </div>
 
@@ -66,7 +51,7 @@
     </div>
 
     <!-- 任务列表 -->
-    <div v-else-if="filteredTasks.length > 0" class="task-list">
+    <div v-else-if="currentTasks.length > 0" class="task-list">
       <TaskItem 
         v-for="task in paginatedTasks" 
         :key="task.task_id" 
@@ -117,8 +102,8 @@
     </div>
 
     <!-- 分页信息 -->
-    <div class="pagination-info" v-if="filteredTasks.length > 0">
-      共 {{ filteredTasks.length }} 条记录，每页 {{ pageSize }} 条，第 {{ currentPage }} / {{ totalPages }} 页
+    <div class="pagination-info" v-if="currentTasks.length > 0">
+      共 {{ currentTasks.length }} 条记录，每页 {{ pageSize }} 条，第 {{ currentPage }} / {{ totalPages }} 页
     </div>
   </div>
 </template>
@@ -126,7 +111,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import TaskItem from '../components/TaskItem.vue'
-import { getTaskList, STATUS_OPTIONS, type TaskListItem } from '../api/task'
+import { getTaskList, type TaskListItem } from '../api/task'
 import { useAuth } from '../composables/useAuth'
 
 const { user } = useAuth()
@@ -135,35 +120,24 @@ const { user } = useAuth()
 const activeTab = ref<'assigned' | 'created'>('assigned')
 const assignedTasks = ref<TaskListItem[]>([])
 const createdTasks = ref<TaskListItem[]>([])
+const assignedTotalPages = ref(0)
+const createdTotalPages = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(6)
 const isLoading = ref(false)
 const error = ref('')
-const statusFilter = ref(0)
 
 // 计算属性
-const assignedCount = computed(() => assignedTasks.value.length)
-const createdCount = computed(() => createdTasks.value.length)
-
 const currentTasks = computed(() => {
   return activeTab.value === 'assigned' ? assignedTasks.value : createdTasks.value
 })
 
-const filteredTasks = computed(() => {
-  if (statusFilter.value === 0) {
-    return currentTasks.value
-  }
-  return currentTasks.value.filter(task => task.status === statusFilter.value)
-})
-
 const totalPages = computed(() => {
-  return Math.ceil(filteredTasks.value.length / pageSize.value)
+  return activeTab.value === 'assigned' ? assignedTotalPages.value : createdTotalPages.value
 })
 
 const paginatedTasks = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredTasks.value.slice(start, end)
+  return currentTasks.value
 })
 
 const visiblePages = computed(() => {
@@ -194,8 +168,8 @@ const visiblePages = computed(() => {
   return [...new Set(rangeWithDots)]
 })
 
-// 获取任务列表
-const fetchTasks = async () => {
+// 获取当前选项卡的任务
+const fetchCurrentTasks = async () => {
   if (!user.value) {
     error.value = '请先登录'
     return
@@ -205,32 +179,25 @@ const fetchTasks = async () => {
   error.value = ''
 
   try {
-    // 并行获取认领的任务和发布的任务
-    const [assignedResponse, createdResponse] = await Promise.all([
-      // 获取我认领的任务
-      getTaskList({
-        page: 1,
-        page_size: 100, // 获取较多数据，前端分页
-        assignee_id: user.value.id
-      }),
-      // 获取我发布的任务
-      getTaskList({
-        page: 1,
-        page_size: 100,
-        creator_id: user.value.id
-      })
-    ])
-    
-    if (assignedResponse.code === 200 && assignedResponse.data) {
-      assignedTasks.value = assignedResponse.data
-    } else {
-      console.error('获取认领任务失败:', assignedResponse.msg)
+    const params = {
+      page: currentPage.value,
+      page_size: pageSize.value,
+      ...(activeTab.value === 'assigned' ? { assignee_id: user.value.id } : { creator_id: user.value.id })
     }
 
-    if (createdResponse.code === 200 && createdResponse.data) {
-      createdTasks.value = createdResponse.data
+    const response = await getTaskList(params)
+    
+    if (response.code === 200 && response.data) {
+      if (activeTab.value === 'assigned') {
+        assignedTasks.value = response.data
+        assignedTotalPages.value = response.total_pages || 0
+      } else {
+        createdTasks.value = response.data
+        createdTotalPages.value = response.total_pages || 0
+      }
     } else {
-      console.error('获取发布任务失败:', createdResponse.msg)
+      console.error('获取任务失败:', response.msg)
+      error.value = response.msg || '获取任务失败'
     }
 
   } catch (err) {
@@ -239,6 +206,11 @@ const fetchTasks = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+// 获取任务列表（初始化时调用）
+const fetchTasks = async () => {
+  await fetchCurrentTasks()
 }
 
 // 分页方法
@@ -257,10 +229,11 @@ const nextPage = () => {
 // 监听器
 watch(activeTab, () => {
   currentPage.value = 1
+  fetchCurrentTasks()
 })
 
-watch(statusFilter, () => {
-  currentPage.value = 1
+watch(currentPage, () => {
+  fetchCurrentTasks()
 })
 
 // 生命周期
@@ -381,58 +354,6 @@ onMounted(() => {
 
 .tab-icon {
   font-size: 16px;
-}
-
-.task-count {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  padding: 2px 8px;
-  font-size: 12px;
-  font-weight: 600;
-  min-width: 20px;
-  text-align: center;
-}
-
-.tab-button.active .task-count {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* 筛选器样式 */
-.filter-container {
-  margin-bottom: 24px;
-}
-
-.filter-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: white;
-  padding: 16px 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.filter-section label {
-  font-weight: 500;
-  color: #374151;
-  white-space: nowrap;
-}
-
-.status-select {
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: white;
-  color: #374151;
-  font-size: 14px;
-  cursor: pointer;
-  transition: border-color 0.2s;
-}
-
-.status-select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .task-list {
@@ -585,16 +506,6 @@ onMounted(() => {
 
   .tab-button {
     justify-content: center;
-  }
-
-  .filter-section {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .filter-section label {
-    text-align: center;
   }
 
   .pagination {
