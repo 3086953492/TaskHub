@@ -44,6 +44,30 @@ export interface CreateTaskResponse {
   created_at: string
 }
 
+// 任务详情接口
+export interface TaskDetail {
+  task_id: number
+  status: number
+  assignee_id?: number
+  creator_id: number
+  created_at: string
+  updated_at: string
+  title: string
+  description?: string
+  priority: number
+  due_date?: string
+  completed_at?: string
+  images?: TaskImage[]
+}
+
+// 任务状态选项
+export const STATUS_OPTIONS = [
+  { value: 1, label: '待处理', color: '#6b7280' },
+  { value: 2, label: '进行中', color: '#3b82f6' },
+  { value: 3, label: '已完成', color: '#10b981' },
+  { value: 4, label: '已取消', color: '#ef4444' }
+]
+
 // 优先级选项
 export const PRIORITY_OPTIONS = [
   { value: 1, label: '高优先级', color: '#dc2626' },
@@ -78,4 +102,25 @@ export const createTask = async (params: CreateTaskParams): Promise<ApiResponse<
     console.error('创建任务失败:', error)
     throw error
   }
+}
+
+// 获取任务详情
+export const getTaskDetail = async (taskId: number): Promise<ApiResponse<TaskDetail>> => {
+  try {
+    const response = await http.get<ApiResponse<TaskDetail>>(`/task/${taskId}`)
+    return response.data
+  } catch (error) {
+    console.error('获取任务详情失败:', error)
+    throw error
+  }
+}
+
+// 工具函数：根据优先级获取样式
+export const getPriorityOption = (priority: number) => {
+  return PRIORITY_OPTIONS.find(option => option.value === priority) || PRIORITY_OPTIONS[1]
+}
+
+// 工具函数：根据状态获取样式
+export const getStatusOption = (status: number) => {
+  return STATUS_OPTIONS.find(option => option.value === status) || STATUS_OPTIONS[0]
 } 

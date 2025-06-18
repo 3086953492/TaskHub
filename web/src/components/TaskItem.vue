@@ -1,7 +1,7 @@
 <template>
   <div class="task-item">
     <div class="task-header">
-      <h3 class="task-title">{{ task.title }}</h3>
+      <h3 class="task-title clickable" @click="goToDetail">{{ task.title }}</h3>
       <div class="task-badges">
         <span class="status-badge" :class="statusClass">
           {{ statusText }}
@@ -31,6 +31,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 interface Task {
   task_id: number
@@ -44,6 +45,13 @@ interface Task {
 const props = defineProps<{
   task: Task
 }>()
+
+const router = useRouter()
+
+// 跳转到任务详情页
+const goToDetail = () => {
+  router.push(`/task/${props.task.task_id}`)
+}
 
 // 状态文本映射
 const statusText = computed(() => {
@@ -135,6 +143,15 @@ const isOverdue = computed(() => {
   line-height: 1.4;
   flex: 1;
   margin-right: 16px;
+}
+
+.task-title.clickable {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.task-title.clickable:hover {
+  color: #3b82f6;
 }
 
 .task-badges {
