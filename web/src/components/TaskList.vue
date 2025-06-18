@@ -53,8 +53,9 @@
         <button 
           v-for="page in visiblePages" 
           :key="page"
-          @click="currentPage = page"
+          @click="typeof page === 'number' && (currentPage = page)"
           :class="['page-number', { active: page === currentPage }]"
+          :disabled="typeof page === 'string'"
         >
           {{ page }}
         </button>
