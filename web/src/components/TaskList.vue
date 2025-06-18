@@ -2,8 +2,18 @@
   <div class="task-list-container">
     <!-- 页面标题 -->
     <div class="page-header">
-      <h1>TaskHub 任务管理</h1>
-      <p>高效管理您的任务和项目</p>
+      <div class="header-content">
+        <div class="title-section">
+          <h1>TaskHub 任务管理</h1>
+          <p>高效管理您的任务和项目</p>
+        </div>
+        <div class="action-section" v-if="isLoggedIn">
+          <router-link to="/task/create" class="create-task-btn">
+            <span class="btn-icon">➕</span>
+            <span>创建任务</span>
+          </router-link>
+        </div>
+      </div>
     </div>
 
 
@@ -227,21 +237,60 @@ onMounted(() => {
 }
 
 .page-header {
-  text-align: center;
   margin-bottom: 32px;
 }
 
-.page-header h1 {
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.title-section {
+  text-align: center;
+  flex: 1;
+}
+
+.title-section h1 {
   color: #1f2937;
   font-size: 32px;
   font-weight: 700;
   margin: 0 0 8px 0;
 }
 
-.page-header p {
+.title-section p {
   color: #6b7280;
   font-size: 16px;
   margin: 0;
+}
+
+.action-section {
+  flex-shrink: 0;
+}
+
+.create-task-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #10b981;
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.create-task-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btn-icon {
+  font-size: 14px;
 }
 
 
@@ -415,6 +464,20 @@ onMounted(() => {
     padding: 16px;
   }
   
+  .header-content {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .title-section h1 {
+    font-size: 28px;
+  }
+  
+  .create-task-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  
   .pagination {
     flex-direction: column;
     gap: 12px;
@@ -423,5 +486,5 @@ onMounted(() => {
   .page-numbers {
     order: -1;
   }
-}
+  }
 </style> 

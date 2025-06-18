@@ -4,6 +4,7 @@ import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import UserProfile from '../views/UserProfile.vue'
 import EditProfile from '../views/EditProfile.vue'
+import CreateTask from '../views/CreateTask.vue'
 import { useAuth } from '../composables/useAuth'
 
 const routes = [
@@ -23,6 +24,12 @@ const routes = [
     path: '/profile/edit',
     name: 'EditProfile',
     component: EditProfile,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/task/create',
+    name: 'CreateTask',
+    component: CreateTask,
     meta: { requiresAuth: true }
   },
   {
