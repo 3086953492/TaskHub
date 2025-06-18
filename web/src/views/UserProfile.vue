@@ -91,11 +91,6 @@
             <span>编辑资料</span>
           </button>
           
-          <button class="action-btn secondary" @click="changePassword">
-            <span class="btn-icon">🔒</span>
-            <span>修改密码</span>
-          </button>
-          
           <button class="action-btn danger" @click="handleLogout">
             <span class="btn-icon">🚪</span>
             <span>退出登录</span>
@@ -157,13 +152,7 @@ const getJoinDays = () => {
 
 // 事件处理
 const editProfile = () => {
-  // TODO: 实现编辑资料功能
-  alert('编辑资料功能开发中...')
-}
-
-const changePassword = () => {
-  // TODO: 实现修改密码功能
-  alert('修改密码功能开发中...')
+  router.push('/profile/edit')
 }
 
 const handleLogout = () => {
@@ -356,7 +345,8 @@ const handleLogout = () => {
   cursor: pointer;
   transition: all 0.2s;
   flex: 1;
-  min-width: 120px;
+  min-width: 140px;
+  justify-content: center;
 }
 
 .action-btn.primary {

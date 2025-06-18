@@ -3,6 +3,7 @@ import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
 import UserProfile from '../views/UserProfile.vue'
+import EditProfile from '../views/EditProfile.vue'
 import { useAuth } from '../composables/useAuth'
 
 const routes = [
@@ -16,6 +17,12 @@ const routes = [
     path: '/profile',
     name: 'UserProfile',
     component: UserProfile,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile/edit',
+    name: 'EditProfile',
+    component: EditProfile,
     meta: { requiresAuth: true }
   },
   {
