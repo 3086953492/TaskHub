@@ -88,6 +88,7 @@ type NewImage struct {
 type TaskListResponse struct {
 	TaskID    uint       `json:"task_id"`
 	Status    int        `json:"status"`
+	AssigneeID uint       `json:"assignee_id"`
 	CreatedAt time.Time  `json:"created_at"`
 	Title     string     `json:"title"`
 	Priority  int        `json:"priority"`

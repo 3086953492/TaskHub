@@ -156,6 +156,7 @@ func GetTaskList(page, pageSize uint, conditions map[string]interface{}) ([]mode
 		response := models.TaskListResponse{
 			TaskID:    task.ID,
 			Status:    task.Status,
+			AssigneeID: task.AssigneeID,
 			CreatedAt: task.CreatedAt,
 			Title:     taskInfo.Title,
 			Priority:  taskInfo.Priority,

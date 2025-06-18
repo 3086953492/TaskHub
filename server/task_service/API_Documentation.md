@@ -157,6 +157,7 @@ http://localhost:8080
     {
       "task_id": 1,
       "status": 1,
+      "assignee_id": 1,
       "created_at": "2024-01-01T10:00:00Z",
       "title": "任务标题",
       "priority": 1,
