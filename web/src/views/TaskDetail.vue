@@ -26,6 +26,15 @@
           
           <div class="header-buttons">
             <button 
+              v-if="canEdit" 
+              @click="editTask" 
+              class="edit-btn"
+            >
+              <span class="btn-icon">✏️</span>
+              <span>编辑任务</span>
+            </button>
+            
+            <button 
               v-if="!taskDetail.assignee_id" 
               @click="handleAssignTask" 
               class="assign-btn"
@@ -194,14 +203,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getTaskDetail, getPriorityOption, getStatusOption, assignTask } from '../api/task'
 import type { TaskDetail } from '../api/task'
 import { message } from '../utils/message'
+import { useAuth } from '../composables/useAuth'
 
 const route = useRoute()
 const router = useRouter()
+const { user, isAdmin } = useAuth()
 
 // 状态
 const isLoading = ref(false)
@@ -212,6 +223,12 @@ const isAssigning = ref(false)
 
 // 获取任务ID
 const taskId = Number(route.params.id)
+
+// 权限检查：是否可以编辑任务
+const canEdit = computed(() => {
+  if (!taskDetail.value || !user.value) return false
+  return isAdmin.value || taskDetail.value.creator_id === user.value.id
+})
 
 // 获取任务详情
 const fetchTaskDetail = async () => {
@@ -301,6 +318,11 @@ const closeImagePreview = () => {
 const goBack = () => {
   // 直接跳转到首页(任务列表)，避免历史记录导航问题
   router.push('/')
+}
+
+// 编辑任务
+const editTask = () => {
+  router.push(`/task/${taskId}/edit`)
 }
 
 // 查看历史记录
@@ -430,6 +452,7 @@ onMounted(() => {
 }
 
 .back-btn,
+.edit-btn,
 .history-btn,
 .assign-btn {
   display: flex;
@@ -450,6 +473,15 @@ onMounted(() => {
 
 .back-btn:hover {
   background: #e5e7eb;
+}
+
+.edit-btn {
+  background: #f59e0b;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #d97706;
 }
 
 .assign-btn {

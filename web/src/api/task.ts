@@ -22,7 +22,9 @@ export interface TaskListItem {
 
 // 任务图片接口
 export interface TaskImage {
+  id?: number
   url: string
+  sort_order?: number
 }
 
 // 创建任务请求参数
@@ -156,4 +158,42 @@ export const assignTask = async (taskId: number): Promise<ApiResponse<null>> => 
 // 工具函数：根据状态获取样式
 export const getStatusOption = (status: number) => {
   return STATUS_OPTIONS.find(option => option.value === status) || STATUS_OPTIONS[0]
+}
+
+// 更新任务参数接口
+export interface UpdateTaskParams {
+  status?: number
+  update_task_info?: {
+    title?: string
+    description?: string
+    priority?: number
+    due_date?: string
+  }
+  update_images?: Array<{
+    id: number
+    url: string
+    sort_order: number
+  }>
+  delete_images?: Array<{
+    id: number
+  }>
+  add_images?: Array<{
+    url: string
+    sort_order: number
+  }>
+  remark?: string
+  remark_images?: Array<{
+    url: string
+  }>
+}
+
+// 更新任务
+export const updateTask = async (taskId: number, params: UpdateTaskParams): Promise<ApiResponse<null>> => {
+  try {
+    const response = await http.patch<ApiResponse<null>>(`/task/${taskId}`, params)
+    return response.data
+  } catch (error) {
+    console.error('更新任务失败:', error)
+    throw error
+  }
 } 
