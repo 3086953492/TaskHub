@@ -144,9 +144,14 @@ func GetTaskList(page, pageSize uint, conditions map[string]interface{}) ([]mode
 		return nil, 0, err
 	}
 
-	totalPages, err := repositories.GetTaskPageCount(int(pageSize))
+	totalRecords, err := repositories.GetTaskPageCount(conditions)
 	if err != nil {
 		return nil, 0, err
+	}
+
+	totalPages := totalRecords / int(pageSize)
+	if totalRecords%int(pageSize) != 0 {
+		totalPages++
 	}
 
 	// 组装响应数据

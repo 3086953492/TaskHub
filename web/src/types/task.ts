@@ -55,6 +55,7 @@ export interface ApiResponse<T = any> {
   code: number
   msg: string
   data?: T
+  total_pages?: number
 }
 
 // 任务列表查询参数
