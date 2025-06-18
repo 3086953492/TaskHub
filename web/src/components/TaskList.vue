@@ -100,6 +100,7 @@ interface Task {
   title: string
   priority: number
   due_date?: string
+  assignee_id?: number
 }
 
 const { user, isLoggedIn } = useAuth()

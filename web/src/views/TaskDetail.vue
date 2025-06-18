@@ -25,6 +25,16 @@
           </button>
           
           <div class="header-buttons">
+            <button 
+              v-if="!taskDetail.assignee_id" 
+              @click="handleAssignTask" 
+              class="assign-btn"
+              :disabled="isAssigning"
+            >
+              <span class="btn-icon">🙋</span>
+              <span>{{ isAssigning ? '认领中...' : '认领任务' }}</span>
+            </button>
+            
             <button @click="viewHistory" class="history-btn">
               <span class="btn-icon">📋</span>
               <span>查看历史</span>
@@ -146,12 +156,17 @@
               </div>
             </div>
             
-            <div class="stat-item">
+            <div class="stat-item" :class="{ 'unassigned': !taskDetail.assignee_id }">
               <div class="stat-icon">🎯</div>
               <div class="stat-content">
-                <div class="stat-label">分配人ID</div>
+                <div class="stat-label">分配状态</div>
                 <div class="stat-value">
-                  {{ taskDetail.assignee_id ? `#${taskDetail.assignee_id}` : '未分配' }}
+                  <span v-if="taskDetail.assignee_id" class="assigned">
+                    已分配给 #{{ taskDetail.assignee_id }}
+                  </span>
+                  <span v-else class="unassigned-text">
+                    ⚠️ 待认领
+                  </span>
                 </div>
               </div>
             </div>
@@ -181,8 +196,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getTaskDetail, getPriorityOption, getStatusOption } from '../api/task'
+import { getTaskDetail, getPriorityOption, getStatusOption, assignTask } from '../api/task'
 import type { TaskDetail } from '../api/task'
+import { message } from '../utils/message'
 
 const route = useRoute()
 const router = useRouter()
@@ -192,6 +208,7 @@ const isLoading = ref(false)
 const error = ref('')
 const taskDetail = ref<TaskDetail | null>(null)
 const previewImageUrl = ref('')
+const isAssigning = ref(false)
 
 // 获取任务ID
 const taskId = Number(route.params.id)
@@ -289,6 +306,30 @@ const goBack = () => {
 // 查看历史记录
 const viewHistory = () => {
   router.push(`/task/${taskId}/history`)
+}
+
+// 分配任务给当前用户
+const handleAssignTask = async () => {
+  if (!taskDetail.value || isAssigning.value) return
+
+  isAssigning.value = true
+
+  try {
+    const response = await assignTask(taskDetail.value.task_id)
+    
+    if (response.code === 200) {
+      message.success('任务认领成功', '您已成功认领该任务')
+      // 重新获取任务详情以更新分配状态
+      await fetchTaskDetail()
+    } else {
+      message.error('认领失败', response.msg || '任务认领失败，请稍后重试')
+    }
+  } catch (err) {
+    console.error('认领任务失败:', err)
+    message.error('认领失败', '网络错误，请稍后重试')
+  } finally {
+    isAssigning.value = false
+  }
 }
 
 // 生命周期
@@ -389,7 +430,8 @@ onMounted(() => {
 }
 
 .back-btn,
-.history-btn {
+.history-btn,
+.assign-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -408,6 +450,21 @@ onMounted(() => {
 
 .back-btn:hover {
   background: #e5e7eb;
+}
+
+.assign-btn {
+  background: #10b981;
+  color: white;
+}
+
+.assign-btn:hover:not(:disabled) {
+  background: #059669;
+}
+
+.assign-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .history-btn {
@@ -604,6 +661,20 @@ onMounted(() => {
 .stat-value {
   color: #1f2937;
   font-weight: 600;
+}
+
+.assigned {
+  color: #10b981;
+}
+
+.unassigned-text {
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+.stat-item.unassigned {
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
 }
 
 .image-modal {

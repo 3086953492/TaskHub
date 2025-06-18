@@ -17,6 +17,7 @@ export interface TaskListItem {
   title: string
   priority: number
   due_date?: string
+  assignee_id?: number
 }
 
 // 任务图片接口
@@ -137,6 +138,17 @@ export const getTaskHistory = async (taskId: number): Promise<ApiResponse<TaskHi
     return response.data
   } catch (error) {
     console.error('获取任务历史记录失败:', error)
+    throw error
+  }
+}
+
+// 分配任务给当前用户
+export const assignTask = async (taskId: number): Promise<ApiResponse<null>> => {
+  try {
+    const response = await http.patch<ApiResponse<null>>(`/task?id=${taskId}`)
+    return response.data
+  } catch (error) {
+    console.error('分配任务失败:', error)
     throw error
   }
 }

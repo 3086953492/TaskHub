@@ -25,6 +25,12 @@
         <span class="label">任务ID:</span>
         <span class="value">#{{ task.task_id }}</span>
       </div>
+      <div class="meta-item">
+        <span class="label">分配状态:</span>
+        <span class="value" :class="{ 'unassigned': !task.assignee_id, 'assigned': task.assignee_id }">
+          {{ task.assignee_id ? '已分配' : '待认领' }}
+        </span>
+      </div>
     </div>
   </div>
 </template>
@@ -40,6 +46,7 @@ interface Task {
   title: string
   priority: number
   due_date?: string
+  assignee_id?: number
 }
 
 const props = defineProps<{
@@ -228,6 +235,16 @@ const isOverdue = computed(() => {
 
 .value.overdue {
   color: #dc2626;
+  font-weight: 600;
+}
+
+.value.assigned {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.value.unassigned {
+  color: #f59e0b;
   font-weight: 600;
 }
 
