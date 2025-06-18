@@ -59,6 +59,15 @@ func GetTaskRecord(taskID uint) (*models.Task, error) {
 	return &task, nil
 }
 
+// 获取指定页大小的页数
+func GetTaskPageCount(pageSize int) (int, error) {
+	var count int64
+	if err := global.DB.Model(&models.Task{}).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return int(count / int64(pageSize)), nil
+}
+
 // 获取任务详细信息
 func GetTaskInfo(taskID uint) (*models.TaskInfo, error) {
 	var taskInfo models.TaskInfo

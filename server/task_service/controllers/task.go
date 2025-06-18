@@ -143,7 +143,7 @@ func ListHandler(c *gin.Context) {
 		return
 	}
 
-	tasks, err := services.GetTaskList(page, pageSize, conditions)
+	tasks, totalPages, err := services.GetTaskList(page, pageSize, conditions)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": 500,
@@ -156,6 +156,7 @@ func ListHandler(c *gin.Context) {
 		"code": 200,
 		"msg":  "获取任务列表成功",
 		"data": tasks,
+		"total_pages": totalPages,
 	})
 }
 

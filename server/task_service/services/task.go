@@ -121,15 +121,15 @@ func AssignTask(taskID, userID uint) error {
 	return nil
 }
 
-func GetTaskList(page, pageSize uint, conditions map[string]interface{}) ([]models.TaskListResponse, error) {
+func GetTaskList(page, pageSize uint, conditions map[string]interface{}) ([]models.TaskListResponse, int, error) {
 	// 获取任务基本记录
 	tasks, err := repositories.GetTaskRecords(int(page), int(pageSize), conditions)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	if len(tasks) == 0 {
-		return []models.TaskListResponse{}, nil
+		return []models.TaskListResponse{}, 0, nil
 	}
 
 	// 提取任务ID列表
@@ -141,7 +141,12 @@ func GetTaskList(page, pageSize uint, conditions map[string]interface{}) ([]mode
 	// 批量获取任务信息
 	taskInfoMap, err := repositories.GetTaskInfoBatch(taskIDs)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+
+	totalPages, err := repositories.GetTaskPageCount(int(pageSize))
+	if err != nil {
+		return nil, 0, err
 	}
 
 	// 组装响应数据
@@ -165,7 +170,7 @@ func GetTaskList(page, pageSize uint, conditions map[string]interface{}) ([]mode
 		result = append(result, response)
 	}
 
-	return result, nil
+	return result, totalPages, nil
 }
 
 func GetTaskDetail(taskID, userID uint, role string) (*models.TaskDetailResponse, error) {
