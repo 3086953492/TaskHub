@@ -183,7 +183,6 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getTaskDetail, getPriorityOption, getStatusOption } from '../api/task'
 import type { TaskDetail } from '../api/task'
-import { message } from '../utils/message'
 
 const route = useRoute()
 const router = useRouter()
@@ -283,12 +282,13 @@ const closeImagePreview = () => {
 
 // 返回上一页
 const goBack = () => {
-  router.back()
+  // 直接跳转到首页(任务列表)，避免历史记录导航问题
+  router.push('/')
 }
 
 // 查看历史记录
 const viewHistory = () => {
-  message.info('功能开发中', '历史记录功能正在开发中，敬请期待')
+  router.push(`/task/${taskId}/history`)
 }
 
 // 生命周期

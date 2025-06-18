@@ -68,6 +68,16 @@ export const STATUS_OPTIONS = [
   { value: 4, label: '已取消', color: '#ef4444' }
 ]
 
+// 任务历史记录接口
+export interface TaskHistory {
+  id: number
+  action: string
+  operator_id: number
+  remark: string
+  created_at: string
+  images: string[]
+}
+
 // 优先级选项
 export const PRIORITY_OPTIONS = [
   { value: 1, label: '高优先级', color: '#dc2626' },
@@ -118,6 +128,17 @@ export const getTaskDetail = async (taskId: number): Promise<ApiResponse<TaskDet
 // 工具函数：根据优先级获取样式
 export const getPriorityOption = (priority: number) => {
   return PRIORITY_OPTIONS.find(option => option.value === priority) || PRIORITY_OPTIONS[1]
+}
+
+// 获取任务历史记录
+export const getTaskHistory = async (taskId: number): Promise<ApiResponse<TaskHistory[]>> => {
+  try {
+    const response = await http.get<ApiResponse<TaskHistory[]>>(`/task/history/${taskId}`)
+    return response.data
+  } catch (error) {
+    console.error('获取任务历史记录失败:', error)
+    throw error
+  }
 }
 
 // 工具函数：根据状态获取样式
