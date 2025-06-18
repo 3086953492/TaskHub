@@ -125,7 +125,7 @@ type TaskHistoryResponse struct {
 }
 
 type UpdateTaskRequest struct {
-	Status         int               `json:"status" binding:"oneof=1 4"`
+	Status         int               `json:"status"`
 	UpdateTaskInfo UpdateTaskInfo    `json:"update_task_info"`
 	UpdateImages   []UpdateTaskImage `json:"update_images"`
 	DeleteImages   []DeleteTaskImage `json:"delete_images"`
@@ -137,7 +137,7 @@ type UpdateTaskRequest struct {
 type UpdateTaskInfo struct {
 	Title       string     `json:"title"`
 	Description string     `json:"description"`
-	Priority    int        `json:"priority" binding:"oneof=1 2 3"`
+	Priority    int        `json:"priority"`
 	DueDate     *time.Time `json:"due_date"`
 }
 
