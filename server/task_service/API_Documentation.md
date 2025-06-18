@@ -9,7 +9,7 @@ TaskHub 是一个任务管理系统，提供任务的创建、分配、查看、
 所有API请求都需要在请求头中包含认证Token：
 
 ```
-Authorization: Bearer <JWT_TOKEN>
+Authorization:  <JWT_TOKEN>
 ```
 
 ## 基础URL

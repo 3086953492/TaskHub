@@ -54,7 +54,7 @@
 **cURL 示例**
 ```bash
 curl -X POST "http://your-domain/img/" \
-  -H "Authorization: Bearer your-token" \
+  -H "Authorization:  your-token" \
   -F "file=@/path/to/your/image.jpg"
 ```
 
@@ -66,7 +66,7 @@ formData.append('file', file);
 fetch('/img/', {
     method: 'POST',
     headers: {
-        'Authorization': 'Bearer your-token'
+        'Authorization': ' your-token'
     },
     body: formData
 })
@@ -171,7 +171,7 @@ formData.append('file', file);
 fetch('/img/', {
     method: 'POST',
     headers: {
-        'Authorization': 'Bearer your-auth-token'
+        'Authorization': ' your-auth-token'
     },
     body: formData
 })

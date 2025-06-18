@@ -6,7 +6,7 @@
 `POST /auth/refresh`
 
 **请求头**
-- Authorization: Bearer <旧token>
+- Authorization:  <旧token>
 
 **成功响应**
 ```json
@@ -119,7 +119,7 @@
 `PUT /user/info`
 
 **请求头**
-- Authorization: Bearer <有效token>
+- Authorization:  <有效token>
 
 **请求体**
 ```json
